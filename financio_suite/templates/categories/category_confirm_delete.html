@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete Category - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        <!-- Header -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-[#27273a] px-4 md:px-10 py-3">
+            <div class="flex items-center gap-2 md:gap-4 text-gray-900 dark:text-white">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
+                    <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-6 md:h-8 hidden dark:block">
+                    <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-6 md:h-8 block dark:hidden">
+                    <h2 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Financio</h2>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-6">
+            <div class="max-w-2xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'category_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Categories
+                </a>
+
+                <!-- Delete Confirmation -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-red-200 dark:border-red-900/50 p-6">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-gray-900 dark:text-white text-xl font-bold mb-2">Delete Category</h2>
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                Are you sure you want to delete the category <strong class="text-gray-900 dark:text-white">"{{ category.name|title }}"</strong>?
+                            </p>
+                            
+                            <!-- Category Details -->
+                            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 mb-4">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: {{ category.color|default:'#4d88ff' }};"></div>
+                                    {% if category.icon %}
+                                    <span class="text-xl">{{ category.icon }}</span>
+                                    {% endif %}
+                                    <span class="text-gray-900 dark:text-white font-medium">{{ category.name|title }}</span>
+                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                        {{ category.get_type_display|title }}
+                                    </span>
+                                </div>
+                                {% if category.description %}
+                                <p class="text-gray-600 dark:text-gray-400 text-sm">{{ category.description }}</p>
+                                {% endif %}
+                            </div>
+
+                            {% if category.children.exists %}
+                            <div class="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-lg p-4 mb-4">
+                                <p class="text-red-800 dark:text-red-200 text-sm">
+                                    <strong>Warning:</strong> This category has {{ category.children.count }} subcategor{{ category.children.count|pluralize:"y,ies" }}. You must delete or reassign them first.
+                                </p>
+                            </div>
+                            {% endif %}
+
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                This action cannot be undone.
+                            </p>
+
+                            <!-- Action Buttons -->
+                            <form method="post" class="flex gap-3 mt-6">
+                                {% csrf_token %}
+                                <button type="submit" class="flex items-center justify-center px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors" {% if category.children.exists %}disabled{% endif %}>
+                                    Delete Category
+                                </button>
+                                <a href="{% url 'category_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
+                                    Cancel
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

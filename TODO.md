@@ -15,58 +15,116 @@
 - [x] Favicon setup
 - [x] Theme toggle (dark/light mode)
 - [x] Base templates with TailwindCSS
+- [x] Dashboard UI (responsive, toggleable sidebar)
+- [x] Dashboard stats cards (Net Worth, Total Accounts, Categories)
+- [x] Dashboard accounts snapshot with balances
+- [x] Dashboard quick action buttons
+- [x] Categories: List/tree view (responsive)
+- [x] Categories: Create category form
+- [x] Categories: Edit category
+- [x] Categories: Delete category with validation
 
 ## 🚧 In Progress
-- [ ] Dashboard UI implementation
+- None
 
-## 📋 TODO - High Priority
+## 📋 TODO - Priority Order
 
-### Dashboard
-- [ ] Create navigation header component with menu links
-- [ ] Create sidebar navigation component
-- [ ] Overview cards (Net Worth, Income MTD, Expense MTD, Cash total)
-- [ ] Accounts snapshot list with balances
-- [ ] Recent transactions table (last 10)
-- [ ] Quick action buttons
-- [ ] User profile dropdown with logout
-- [ ] Create dashboard view to calculate stats
-- [ ] Query and display actual account data
+### 1️⃣ Categories (CRUD) - ✅ COMPLETED
+- [x] Categories list/tree view (desktop + mobile responsive)
+- [x] Create category form
+- [x] Edit category
+- [x] Delete category (with subcategory checks)
+- [x] Category color picker
+- [x] Category icon support
+- [ ] Seed default categories for new users
+- [ ] Category reassignment when deleting (for transactions - pending transaction model)
 
-### Transaction Models (Core Functionality)
-- [ ] Create Transaction model (double-entry ledger)
-- [ ] Create Ledger model (journal entries)
-- [ ] Auto-create balancing ledger entries on transaction save
-- [ ] Transaction categorization
-- [ ] Add transaction validation logic
-- [ ] Create migrations for transaction models
-
-### Transaction UI
-- [ ] Transaction list/history page
-- [ ] Create transaction form (income/expense)
-- [ ] Transfer between accounts form
-- [ ] Split transaction support
-- [ ] Transaction edit/delete functionality
-- [ ] Transaction filters (date, category, account, type)
-
-### Accounts Management
-- [ ] Accounts list page
-- [ ] Create new account form
+### 2️⃣ Accounts (CRUD) - HIGH PRIORITY
+- [ ] Accounts list page (desktop + mobile responsive)
+- [ ] Create new account form (make dashboard button functional)
+- [ ] Account type selection with icons
 - [ ] Edit account details
+- [ ] Delete account (with transaction dependency checks)
 - [ ] Account details page with transaction history
-- [ ] Account balance calculation
 - [ ] Upload/update account picture
+- [ ] Account balance display and calculations
+- [ ] Account status (active/inactive)
 
-### Categories Management
-- [ ] Categories list/tree view
-- [ ] Create category form
-- [ ] Edit category
-- [ ] Delete category (with transaction reassignment)
-- [ ] Seed default categories
-- [ ] Category icons/colors
+### 3️⃣ Transactions - HIGH PRIORITY
+**Models First:**
+- [ ] Create Transaction model (amount, date, description, type)
+- [ ] Create Ledger model (double-entry bookkeeping - debit/credit entries)
+- [ ] Implement auto-generation of balancing ledger entries
+- [ ] Link transactions to categories and accounts
+- [ ] Transaction validation logic (balance checks, date validation)
+- [ ] Create migrations for transaction models
+- [ ] Signal handlers for auto-updating AccountBalance
 
-## 📋 TODO - Medium Priority
+**Then UI (Desktop + Mobile Responsive):**
+- [ ] Transaction list/history page with filters
+- [ ] Create transaction form for income/expense (make dashboard button functional)
+- [ ] Transfer between accounts form
+- [ ] Transaction edit functionality
+- [ ] Transaction delete with ledger cleanup
+- [ ] Transaction filters (date range, category, account, type)
+- [ ] Search functionality
+- [ ] Pagination for large transaction lists
 
-### Password Reset
+### 4️⃣ Investments - MEDIUM PRIORITY
+**Models First:**
+- [ ] Investment model (stock/mutual fund details)
+- [ ] Investment transaction model (buy/sell)
+- [ ] Portfolio holdings calculation
+- [ ] P&L calculation logic
+- [ ] Current value tracking
+- [ ] Create migrations for investment models
+
+**Then UI (Desktop + Mobile Responsive):**
+- [ ] Portfolio overview page
+- [ ] Investment list with current values
+- [ ] Add investment form
+- [ ] Buy/Sell transaction form
+- [ ] Investment details page with transaction history
+- [ ] P&L reports (realized/unrealized)
+- [ ] Holdings summary
+
+### 5️⃣ Fixed Deposits (FD) - MEDIUM PRIORITY
+**Models First:**
+- [ ] FD model (amount, rate, tenure, maturity date)
+- [ ] Interest calculation logic
+- [ ] Maturity tracking
+- [ ] Auto-credit to account on maturity (signal)
+- [ ] Create migrations for FD models
+
+**Then UI (Desktop + Mobile Responsive):**
+- [ ] FD list page with maturity info
+- [ ] Create FD form
+- [ ] Edit FD details
+- [ ] FD details page with interest breakdown
+- [ ] Maturity alerts/notifications
+- [ ] Premature closure handling
+
+### 6️⃣ Loans - MEDIUM PRIORITY
+**Models First:**
+- [ ] Loan model (principal, rate, tenure, EMI)
+- [ ] EMI calculation logic
+- [ ] Payment schedule generation
+- [ ] Interest calculation (reducing balance)
+- [ ] Outstanding balance tracking
+- [ ] Create migrations for loan models
+
+**Then UI (Desktop + Mobile Responsive):**
+- [ ] Loan list page with EMI info
+- [ ] Create loan form
+- [ ] Edit loan details
+- [ ] Loan details page with amortization schedule
+- [ ] EMI payment recording
+- [ ] Prepayment/foreclosure handling
+- [ ] Outstanding balance display
+
+## 📋 Additional Features - Low to Medium Priority
+
+### Password Reset Completion
 - [ ] Password reset confirmation view
 - [ ] Password reset confirmation template
 - [ ] Token validation logic
@@ -74,47 +132,28 @@
 
 ### Dashboard Enhancements
 - [ ] Income vs Expense chart (last 6 months)
-- [ ] Spend by category chart (MTD)
+- [ ] Spend by category pie/bar chart (MTD)
 - [ ] Date range filters
 - [ ] Account type filters
 - [ ] Category filters
-- [ ] Export data functionality
+- [ ] Export dashboard data (PDF/CSV)
+- [ ] Recent transactions widget (last 10)
+- [ ] Upcoming EMI/FD maturity alerts
 
-### Reports
-- [ ] Income vs Expense report
+### Reports Module
+- [ ] Income vs Expense report with charts
 - [ ] Category-wise spending report
 - [ ] Account-wise balance sheet
-- [ ] Monthly/Yearly summary
+- [ ] Monthly/Yearly summary reports
 - [ ] Cashflow statement
-- [ ] PDF export
-
-### Investments (FDD Module)
-- [ ] Investment model
-- [ ] Portfolio view
-- [ ] Buy/Sell transactions
-- [ ] P&L calculation
-- [ ] Holdings view
-
-### Fixed Deposits (FDD Module)
-- [ ] FD model
-- [ ] FD list page
-- [ ] Create FD form
-- [ ] FD maturity tracking
-- [ ] Interest calculation
-- [ ] Auto-credit on maturity
-
-### Loans (FDD Module)
-- [ ] Loan model
-- [ ] Loan list page
-- [ ] EMI tracking
-- [ ] Payment schedule
-- [ ] Interest calculation
+- [ ] Tax reports (interest income, capital gains)
+- [ ] PDF/Excel export functionality
 
 ### Transfers Module
-- [ ] Transfer model
-- [ ] Account-to-account transfer form
-- [ ] Transfer history
-- [ ] Recurring transfers
+- [ ] Enhance transfer functionality in transactions
+- [ ] Transfer history page
+- [ ] Recurring/scheduled transfers
+- [ ] Transfer templates (frequent transfers)
 
 ## 📋 TODO - Low Priority
 

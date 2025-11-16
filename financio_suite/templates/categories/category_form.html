@@ -1,0 +1,128 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        <!-- Header -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-[#27273a] px-4 md:px-10 py-3">
+            <div class="flex items-center gap-2 md:gap-4 text-gray-900 dark:text-white">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
+                    <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-6 md:h-8 hidden dark:block">
+                    <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-6 md:h-8 block dark:hidden">
+                    <h2 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Financio</h2>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-6">
+            <div class="max-w-2xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'category_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Categories
+                </a>
+
+                <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight mb-6">{{ title }}</h1>
+
+                <!-- Form -->
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Non-field errors -->
+                    {% if form.non_field_errors %}
+                    <div class="rounded-lg p-4 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Category Name <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Type -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Type <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.type.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Select the type of transactions this category will be used for.</p>
+                    </div>
+
+                    <!-- Parent Category -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Parent Category
+                        </label>
+                        {{ form.parent }}
+                        {% if form.parent.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.parent.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Optional. Create subcategories up to 3 levels deep.</p>
+                    </div>
+
+                    <!-- Color -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Color
+                        </label>
+                        {{ form.color }}
+                        {% if form.color.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.color.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Pick a color to identify this category.</p>
+                    </div>
+
+                    <!-- Icon -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Icon
+                        </label>
+                        {{ form.icon }}
+                        {% if form.icon.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.icon.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Optional. Add an emoji or icon name (e.g., 🍔, 🚗, 💰).</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            {{ button_text }}
+                        </button>
+                        <a href="{% url 'category_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -138,8 +138,13 @@ dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
                             <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Total Accounts</p>
                             <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">{{ stats.total_accounts|default:"0" }}</p>
                         </div>
-                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a]">
-                            <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Categories</p>
+                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a] hover:bg-gray-200 dark:hover:bg-[#2f3548] transition-colors cursor-pointer" onclick="window.location.href='{% url 'category_list' %}'">
+                            <div class="flex items-center justify-between">
+                                <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Categories</p>
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
                             <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">{{ stats.total_categories|default:"0" }}</p>
                         </div>
                     </div>

@@ -49,6 +49,17 @@ class Category(models.Model):
         blank=True,
         help_text="Hex color code for UI visualization (e.g., #3B82F6)"
     )
+    icon = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Icon name or emoji for category (e.g., 🍔, 🚗, 💰)"
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Optional description for the category"
+    )
     is_default = models.BooleanField(
         default=False,
         help_text="System default category (owned by admin)"
@@ -110,7 +121,12 @@ class Category(models.Model):
             raise ValidationError("Color must be a hex code starting with #")
     
     def save(self, *args, **kwargs):
-        """Override save to run validation"""
+        """Override save to run validation and normalize data"""
+        # Convert name to lowercase for consistent storage
+        if self.name:
+            self.name = self.name.lower()
+        
+        # Run validation
         self.full_clean()
         super().save(*args, **kwargs)
     

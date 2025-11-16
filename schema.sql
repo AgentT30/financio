@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS categories (
     parent_id BIGINT NULL REFERENCES categories(id) ON DELETE SET NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense', 'transfer', 'fee')),
     color VARCHAR(7) NULL,
+    icon VARCHAR(50) NULL,
+    description TEXT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,6 +55,8 @@ COMMENT ON COLUMN categories.name IS 'Category name (e.g., Groceries, Salary)';
 COMMENT ON COLUMN categories.parent_id IS 'Parent category for hierarchical organization';
 COMMENT ON COLUMN categories.type IS 'Category type: income, expense, transfer, or fee';
 COMMENT ON COLUMN categories.color IS 'Hex color code for UI visualization (optional)';
+COMMENT ON COLUMN categories.icon IS 'Icon name or emoji for category (e.g., 🍔, 🚗, 💰)';
+COMMENT ON COLUMN categories.description IS 'Optional description for the category';
 COMMENT ON COLUMN categories.is_default IS 'True if system default category owned by admin';
 COMMENT ON COLUMN categories.is_active IS 'Active status for soft delete/archive';
 
