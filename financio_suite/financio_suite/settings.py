@@ -179,6 +179,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # For collectstatic command
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Project-level static files
+    BASE_DIR / 'assets',  # Project assets (logos, etc.)
 ]
 
 # Media files (User-uploaded content)
@@ -194,6 +195,15 @@ SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 # CSRF configuration
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+
+# Email configuration (development - prints to console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@financio.local'
+
+# Authentication configuration
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/auth/login/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

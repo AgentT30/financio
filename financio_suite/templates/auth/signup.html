@@ -1,0 +1,122 @@
+{% extends 'auth/base_auth.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Financio{% endblock %}
+
+{% block auth_content %}
+<!-- Logo -->
+<div class="flex justify-center px-4 py-8">
+    <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-24 hidden dark:block">
+    <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-24 block dark:hidden">
+</div>
+
+<h2 class="text-gray-900 dark:text-white tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
+    Create your account
+</h2>
+
+<!-- Error Messages -->
+{% if messages %}
+<div class="px-4 py-3">
+    {% for message in messages %}
+    <div class="rounded-lg p-4 {% if message.tags == 'error' %}bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200{% else %}bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Signup Form -->
+<form method="post" action="{% url 'signup' %}">
+    {% csrf_token %}
+    
+    <!-- Username Field -->
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+        <label class="flex flex-col min-w-40 flex-1">
+            <p class="text-gray-900 dark:text-white text-base font-medium leading-normal pb-2">Username</p>
+            <input
+                type="text"
+                name="username"
+                placeholder="Choose a username"
+                required
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border border-gray-300 dark:border-none bg-white dark:bg-dark-surface focus:border-primary h-14 placeholder:text-gray-400 dark:placeholder:text-[#9aa5bc] p-4 text-base font-normal leading-normal"
+                value="{{ form.username.value|default:'' }}"
+            />
+            {% if form.username.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.username.errors.0 }}</p>
+            {% endif %}
+        </label>
+    </div>
+    
+    <!-- Email Field -->
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+        <label class="flex flex-col min-w-40 flex-1">
+            <p class="text-gray-900 dark:text-white text-base font-medium leading-normal pb-2">Email</p>
+            <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border border-gray-300 dark:border-none bg-white dark:bg-dark-surface focus:border-primary h-14 placeholder:text-gray-400 dark:placeholder:text-[#9aa5bc] p-4 text-base font-normal leading-normal"
+                value="{{ form.email.value|default:'' }}"
+            />
+            {% if form.email.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.email.errors.0 }}</p>
+            {% endif %}
+        </label>
+    </div>
+    
+    <!-- Password Field -->
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+        <label class="flex flex-col min-w-40 flex-1">
+            <p class="text-gray-900 dark:text-white text-base font-medium leading-normal pb-2">Password</p>
+            <input
+                type="password"
+                name="password1"
+                placeholder="Create a password (min. 8 characters)"
+                required
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border border-gray-300 dark:border-none bg-white dark:bg-dark-surface focus:border-primary h-14 placeholder:text-gray-400 dark:placeholder:text-[#9aa5bc] p-4 text-base font-normal leading-normal"
+            />
+            {% if form.password1.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.password1.errors.0 }}</p>
+            {% endif %}
+        </label>
+    </div>
+    
+    <!-- Confirm Password Field -->
+    <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+        <label class="flex flex-col min-w-40 flex-1">
+            <p class="text-gray-900 dark:text-white text-base font-medium leading-normal pb-2">Confirm Password</p>
+            <input
+                type="password"
+                name="password2"
+                placeholder="Re-enter your password"
+                required
+                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border border-gray-300 dark:border-none bg-white dark:bg-dark-surface focus:border-primary h-14 placeholder:text-gray-400 dark:placeholder:text-[#9aa5bc] p-4 text-base font-normal leading-normal"
+            />
+            {% if form.password2.errors %}
+            <p class="text-red-500 text-sm mt-1">{{ form.password2.errors.0 }}</p>
+            {% endif %}
+        </label>
+    </div>
+    
+    <!-- Create Account Button -->
+    <div class="flex px-4 py-3 mt-2">
+        <button
+            type="submit"
+            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
+        >
+            <span class="truncate">Create account</span>
+        </button>
+    </div>
+    
+    <!-- Login Link -->
+    <div class="flex px-4 py-3">
+        <a
+            href="{% url 'login' %}"
+            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 flex-1 bg-gray-200 dark:bg-dark-surface hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors"
+        >
+            <span class="truncate">Already have an account? Log in</span>
+        </a>
+    </div>
+</form>
+{% endblock %}
