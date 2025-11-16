@@ -1,0 +1,33 @@
+version: '3'
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: financio
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  webapp:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/webapp/Dockerfile
+    ports:
+      - 8000:8000
+  
+    volumes:
+      - ./financio_suite:/financio
+      
+    depends_on:
+      - db
+    # command: sudo ./run_web.sh
+    command: 
+      - sh 
+      - -c
+      - |
+        python3 manage.py makemigrations
+        python3 manage.py migrate
+        python3 manage.py runserver 0.0.0.0:8000
