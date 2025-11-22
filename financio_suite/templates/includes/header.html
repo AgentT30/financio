@@ -1,0 +1,61 @@
+{% load static %}
+
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-[#27273a] px-4 md:px-10 py-3 relative z-[60] bg-white dark:bg-dark-bg">
+    <div class="flex items-center gap-2 md:gap-4 text-gray-900 dark:text-white">
+        <!-- Sidebar Toggle Button (Mobile & Desktop) -->
+        <button 
+            onclick="toggleSidebar()" 
+            class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 dark:bg-dark-surface hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Toggle menu"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        
+        <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
+            <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-6 md:h-8 hidden dark:block">
+            <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-6 md:h-8 block dark:hidden">
+            <h2 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Financio</h2>
+        </a>
+    </div>
+    <div class="flex items-center justify-end gap-2 md:gap-4">
+        <!-- Desktop Navigation - Hidden on mobile -->
+        <div class="hidden lg:flex items-center gap-6">
+            <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'account_list' %}">Accounts</a>
+            <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Transactions</a>
+            <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Reports</a>
+        </div>
+        <!-- Theme Toggle -->
+        <button 
+            onclick="toggleTheme()" 
+            class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 dark:bg-dark-surface hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Toggle theme"
+        >
+            <svg class="w-5 h-5 hidden dark:block text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+            </svg>
+            <svg class="w-5 h-5 block dark:hidden text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+            </svg>
+        </button>
+        <!-- User Profile Dropdown -->
+        <div class="relative">
+            <button onclick="toggleProfileMenu()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+            </button>
+            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</p>
+                </div>
+                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
+                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</a>
+            </div>
+        </div>
+    </div>
+</header>
