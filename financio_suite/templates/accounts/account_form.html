@@ -1,0 +1,222 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-3xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'account_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Accounts
+                </a>
+
+                <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight mb-6">{{ title }}</h1>
+
+                <!-- Form -->
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Non-field errors -->
+                    {% if form.non_field_errors %}
+                    <div class="rounded-lg p-4 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Information -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Basic Information</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Account Name -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Account Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Account Type -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Account Type <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.account_type }}
+                                {% if form.account_type.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.account_type.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Status -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Status <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.status.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Institution Details -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Institution Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Institution -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Institution Name
+                                </label>
+                                {{ form.institution }}
+                                {% if form.institution.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.institution.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Branch -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Branch Name
+                                </label>
+                                {{ form.branch_name }}
+                                {% if form.branch_name.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.branch_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- IFSC Code -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    IFSC Code
+                                </label>
+                                {{ form.ifsc_code }}
+                                {% if form.ifsc_code.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.ifsc_code.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Customer ID -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Customer ID
+                                </label>
+                                {{ form.customer_id }}
+                                {% if form.customer_id.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.customer_id.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Account Number -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Account Number
+                                </label>
+                                {{ form.account_number }}
+                                {% if form.account_number.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.account_number.errors.0 }}</p>
+                                {% endif %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Stored encrypted. Only last 4 digits will be visible.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Details -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Financial Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Opening Balance -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Opening Balance <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.opening_balance }}
+                                {% if form.opening_balance.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.opening_balance.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Opened On -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Opened On
+                                </label>
+                                {{ form.opened_on }}
+                                {% if form.opened_on.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.opened_on.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customization -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Customization</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Color -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Color
+                                </label>
+                                {{ form.color }}
+                                {% if form.color.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.color.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Picture -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Picture
+                                </label>
+                                {{ form.picture }}
+                                {% if form.picture.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.picture.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Notes
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            {{ button_text }}
+                        </button>
+                        <a href="{% url 'account_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

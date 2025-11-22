@@ -61,15 +61,16 @@ COMMENT ON COLUMN categories.is_default IS 'True if system default category owne
 COMMENT ON COLUMN categories.is_active IS 'Active status for soft delete/archive';
 
 -- ============================================================================
--- ACCOUNTS TABLE
+-- BANK ACCOUNTS TABLE
 -- ============================================================================
--- Stores user financial accounts with encrypted sensitive data
+-- Stores user bank accounts with encrypted sensitive data
+-- Inherits from BaseAccount abstract model in Django
 
-CREATE TABLE IF NOT EXISTS accounts (
+CREATE TABLE IF NOT EXISTS bank_accounts (
     id BIGSERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    account_type VARCHAR(20) NOT NULL CHECK (account_type IN ('savings', 'credit_card', 'wallet', 'cash', 'fd', 'loan')),
+    account_type VARCHAR(20) NOT NULL DEFAULT 'savings' CHECK (account_type IN ('savings', 'checking', 'current' 'salary')),
     
     -- Institution details
     institution VARCHAR(100) NULL,
@@ -105,42 +106,43 @@ CREATE TABLE IF NOT EXISTS accounts (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_accounts_user_id ON accounts(user_id);
-CREATE INDEX idx_acc_user_status ON accounts(user_id, status);
-CREATE INDEX idx_acc_type ON accounts(account_type);
+CREATE INDEX idx_bank_acc_user_id ON bank_accounts(user_id);
+CREATE INDEX idx_bank_acc_user_status ON bank_accounts(user_id, status);
+CREATE INDEX idx_bank_acc_type ON bank_accounts(account_type);
 
 -- Update trigger
-CREATE TRIGGER update_accounts_updated_at 
-    BEFORE UPDATE ON accounts 
+CREATE TRIGGER update_bank_accounts_updated_at 
+    BEFORE UPDATE ON bank_accounts 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Comments
-COMMENT ON TABLE accounts IS 'User financial accounts with encrypted sensitive data';
-COMMENT ON COLUMN accounts.account_number IS 'Full account number (encrypted via Django)';
-COMMENT ON COLUMN accounts.account_number_last4 IS 'Last 4 digits for display (unencrypted)';
-COMMENT ON COLUMN accounts.picture IS 'Path to uploaded account picture/icon';
-COMMENT ON COLUMN accounts.color IS 'Hex color code for account theme (e.g., #3B82F6)';
+COMMENT ON TABLE bank_accounts IS 'User bank accounts with encrypted sensitive data (inherits from BaseAccount)';
+COMMENT ON COLUMN bank_accounts.account_type IS 'Type of bank account: savings, checking, or salary';
+COMMENT ON COLUMN bank_accounts.account_number IS 'Full account number (encrypted via Django)';
+COMMENT ON COLUMN bank_accounts.account_number_last4 IS 'Last 4 digits for display (unencrypted)';
+COMMENT ON COLUMN bank_accounts.picture IS 'Path to uploaded account picture/icon';
+COMMENT ON COLUMN bank_accounts.color IS 'Hex color code for account theme (e.g., #3B82F6)';
 
 -- ============================================================================
--- ACCOUNT BALANCES TABLE (Materialized)
+-- BANK ACCOUNT BALANCES TABLE (Materialized)
 -- ============================================================================
 -- Fast balance lookups, updated atomically with ledger postings
 
-CREATE TABLE IF NOT EXISTS account_balances (
-    account_id BIGINT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS bank_account_balances (
+    account_id BIGINT PRIMARY KEY REFERENCES bank_accounts(id) ON DELETE CASCADE,
     balance_amount NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
     last_posting_id BIGINT NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Update trigger
-CREATE TRIGGER update_account_balances_updated_at 
-    BEFORE UPDATE ON account_balances 
+CREATE TRIGGER update_bank_account_balances_updated_at 
+    BEFORE UPDATE ON bank_account_balances 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Comments
-COMMENT ON TABLE account_balances IS 'Materialized account balances for fast lookups';
-COMMENT ON COLUMN account_balances.balance_amount IS 'Current balance calculated from ledger';
-COMMENT ON COLUMN account_balances.last_posting_id IS 'Last posting that updated this balance';
+COMMENT ON TABLE bank_account_balances IS 'Materialized bank account balances for fast lookups';
+COMMENT ON COLUMN bank_account_balances.balance_amount IS 'Current balance calculated from ledger';
+COMMENT ON COLUMN bank_account_balances.last_posting_id IS 'Last posting that updated this balance';

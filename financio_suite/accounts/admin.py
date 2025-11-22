@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Account, AccountBalance
+from .models import BankAccount, BankAccountBalance
 
 
-@admin.register(Account)
-class AccountAdmin(admin.ModelAdmin):
-    """Admin interface for Account model"""
+@admin.register(BankAccount)
+class BankAccountAdmin(admin.ModelAdmin):
+    """Admin interface for BankAccount model"""
     
     list_display = [
         'name',
@@ -69,9 +69,9 @@ class AccountAdmin(admin.ModelAdmin):
         return qs.select_related('user').prefetch_related('balance')
 
 
-@admin.register(AccountBalance)
-class AccountBalanceAdmin(admin.ModelAdmin):
-    """Admin interface for AccountBalance model"""
+@admin.register(BankAccountBalance)
+class BankAccountBalanceAdmin(admin.ModelAdmin):
+    """Admin interface for BankAccountBalance model"""
     
     list_display = ['account', 'balance_amount', 'last_posting_id', 'updated_at']
     readonly_fields = ['account', 'balance_amount', 'last_posting_id', 'updated_at']

@@ -3,45 +3,30 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from encrypted_model_fields.fields import EncryptedCharField
+from core.models import BaseAccount
 
 
-class Account(models.Model):
+class BankAccount(BaseAccount):
     """
-    Account model for managing user's financial accounts.
+    Bank account model for managing user's financial accounts.
     Supports multiple account types with encrypted sensitive data.
+    Inherits common fields from BaseAccount.
     """
     
     ACCOUNT_TYPE_CHOICES = [
         ('savings', 'Savings Account'),
-        ('credit_card', 'Credit Card'),
-        ('wallet', 'Digital Wallet'),
-        ('cash', 'Cash'),
-        ('fd', 'Fixed Deposit'),
-        ('loan', 'Loan Account'),
+        ('checking', 'Checking Account'),
+        ('current', 'Current Account'),
+        ('salary', 'Salary Account'),
     ]
     
-    STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('archived', 'Archived'),
-    ]
-    
-    # Basic Information
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='accounts',
-        db_index=True,
-        help_text="Account owner"
-    )
-    name = models.CharField(
-        max_length=100,
-        help_text="Display name/nickname for the account"
-    )
+    # Account Type (specific to bank accounts)
     account_type = models.CharField(
         max_length=20,
         choices=ACCOUNT_TYPE_CHOICES,
+        default='savings',
         db_index=True,
-        help_text="Type of account"
+        help_text="Type of bank account"
     )
     
     # Institution Details
@@ -85,77 +70,14 @@ class Account(models.Model):
         help_text="Last 4 digits of account number (for display)"
     )
     
-    # Financial Information
-    opening_balance = models.DecimalField(
-        max_digits=18,
-        decimal_places=2,
-        default=0.00,
-        help_text="Initial balance when account was opened"
-    )
-    currency = models.CharField(
-        max_length=3,
-        default='INR',
-        help_text="Currency code (fixed to INR for V1)"
-    )
-    
-    # Dates and Status
-    opened_on = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Date when account was opened"
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='active',
-        db_index=True,
-        help_text="Account status"
-    )
-    
-    # Optional Links to FD/Loan (to be implemented later)
-    # fd_details = models.OneToOneField('fds.FD', null=True, blank=True, on_delete=models.SET_NULL)
-    # loan_details = models.OneToOneField('loans.Loan', null=True, blank=True, on_delete=models.SET_NULL)
-    
-    # Additional Information
-    notes = models.TextField(
-        null=True,
-        blank=True,
-        help_text="Optional notes about the account"
-    )
-    
-    # Visual Customization
-    picture = models.ImageField(
-        upload_to='account_pictures/',
-        null=True,
-        blank=True,
-        help_text="Account picture/icon (optional)"
-    )
-    color = models.CharField(
-        max_length=7,
-        null=True,
-        blank=True,
-        help_text="Color theme for account (hex code, e.g., #3B82F6)"
-    )
-    
-    # Timestamps
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Timestamp when account was created"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        help_text="Timestamp when account was last updated"
-    )
-    
     class Meta:
-        db_table = 'accounts'
-        verbose_name = 'Account'
-        verbose_name_plural = 'Accounts'
-        ordering = ['-created_at']
+        db_table = 'bank_accounts'
+        verbose_name = 'Bank Account'
+        verbose_name_plural = 'Bank Accounts'
         unique_together = [['user', 'institution', 'account_number_last4']]
         indexes = [
-            models.Index(fields=['user', 'status'], name='idx_acc_user_status'),
-            models.Index(fields=['account_type'], name='idx_acc_type'),
+            models.Index(fields=['user', 'status'], name='idx_bank_acc_user_status'),
+            models.Index(fields=['account_type'], name='idx_bank_acc_type'),
         ]
     
     def __str__(self):
@@ -163,27 +85,22 @@ class Account(models.Model):
     
     def clean(self):
         """Validate account data"""
+        # Call parent validation
+        super().clean()
+        
         # Validate IFSC code format if provided
         if self.ifsc_code:
             if not re.match(r'^[A-Z]{4}0[A-Z0-9]{6}$', self.ifsc_code):
                 raise ValidationError({
                     'ifsc_code': 'Invalid IFSC code format. Must be 11 characters (e.g., SBIN0001234)'
                 })
-        
-        # Validate currency is INR for V1
-        if self.currency != 'INR':
-            raise ValidationError({
-                'currency': 'Only INR currency is supported in V1'
-            })
-        
-        # Validate color format if provided
-        if self.color and not re.match(r'^#[0-9A-Fa-f]{6}$', self.color):
-            raise ValidationError({
-                'color': 'Color must be a valid hex code (e.g., #3B82F6)'
-            })
     
     def save(self, *args, **kwargs):
-        """Override save to auto-extract last 4 digits and run validation"""
+        """Override save to auto-extract last 4 digits and run validation and normalize storage"""
+        # Store name and institution in title case for consistency
+        if self.institution:
+            self.institution = self.institution.title()
+        
         # Auto-extract last 4 digits from account number
         if self.account_number:
             # Remove any spaces or dashes
@@ -207,12 +124,12 @@ class Account(models.Model):
     
     def get_current_balance(self):
         """
-        Get current balance from AccountBalance model.
+        Get current balance from BankAccountBalance model.
         Returns opening_balance if no balance record exists yet.
         """
         try:
             return self.balance.balance_amount
-        except AccountBalance.DoesNotExist:
+        except BankAccountBalance.DoesNotExist:
             return self.opening_balance
     
     def can_delete(self):
@@ -220,30 +137,20 @@ class Account(models.Model):
         # Will implement when Transaction model exists
         # For now, return True
         return True
-    
-    def archive(self):
-        """Archive the account (soft delete)"""
-        self.status = 'archived'
-        self.save(update_fields=['status', 'updated_at'])
-    
-    def activate(self):
-        """Activate an archived account"""
-        self.status = 'active'
-        self.save(update_fields=['status', 'updated_at'])
 
 
-class AccountBalance(models.Model):
+class BankAccountBalance(models.Model):
     """
     Materialized balance table for fast balance lookups.
     Updated atomically when transactions/postings are created.
     """
     
     account = models.OneToOneField(
-        Account,
+        BankAccount,
         on_delete=models.CASCADE,
         primary_key=True,
         related_name='balance',
-        help_text="Associated account"
+        help_text="Associated bank account"
     )
     balance_amount = models.DecimalField(
         max_digits=18,
@@ -262,9 +169,9 @@ class AccountBalance(models.Model):
     )
     
     class Meta:
-        db_table = 'account_balances'
-        verbose_name = 'Account Balance'
-        verbose_name_plural = 'Account Balances'
+        db_table = 'bank_account_balances'
+        verbose_name = 'Bank Account Balance'
+        verbose_name_plural = 'Bank Account Balances'
     
     def __str__(self):
         return f"{self.account.name}: {self.balance_amount} {self.account.currency}"

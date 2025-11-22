@@ -119,10 +119,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'financio',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'USER': os.getenv("DB_USER", default='postgres'),
+        'PASSWORD': os.getenv("DB_PASSWORD", default='postgres'),
+        'HOST': os.getenv("DB_HOST", default='localhost'),
+        'PORT': os.getenv("DB_PORT", default='5432'),
     }
 }
 

@@ -36,16 +36,39 @@
 - [x] **Account Refactoring Plan Created** (docs/ACCOUNT_REFACTORING_PLAN.md)
 - [x] **FDD Updated** with specialized account types
 - [x] **SDD Updated** with new ERD and table structure
+- [x] **Account Refactoring - Simplified Approach Implemented:**
+  - [x] Created BaseAccount abstract model in core/models.py
+  - [x] Renamed Account → BankAccount (inherits from BaseAccount)
+  - [x] Renamed AccountBalance → BankAccountBalance
+  - [x] Updated table names: accounts → bank_accounts, account_balances → bank_account_balances
+  - [x] Limited account types to bank-specific: savings, checking, current, salary
+  - [x] Created empty apps: creditcards/, wallets/, cash/ (not in INSTALLED_APPS yet)
+  - [x] Updated all views, forms, admin references to use BankAccount
+  - [x] Data migration created and applied (converted 'Savings' → 'savings')
+  - [x] Updated schema.sql to reflect new structure
+  - [x] Migration guide created (MIGRATION_COMMANDS.md)
+- [x] **Account Detail Page Enhancements:**
+  - [x] Eye icon to toggle account number visibility (masked ↔ full)
+  - [x] Copy icon to copy account number to clipboard
+  - [x] Visual feedback on copy (checkmark icon)
+- [x] **Navigation Improvements:**
+  - [x] Created shared header/sidebar component (templates/includes/header_sidebar.html)
+  - [x] Added hamburger menu for mobile/desktop navigation
+  - [x] Implemented collapsible sidebar with overlay for mobile
+  - [x] Active menu item highlighting
+  - [x] Updated all account pages to use shared navigation
+  - [x] Consistent header and sidebar across Dashboard, Accounts, Categories
+- [x] **Button Text Fix:** Create Account button now displays text properly
 
 ## 🚧 In Progress
-- [ ] **MAJOR REFACTORING: Account Model Split** (see docs/ACCOUNT_REFACTORING_PLAN.md)
-  - Status: Planning phase complete, awaiting user approval
-  - Next: Begin Phase 2 implementation
+- [ ] **Future: Implement specialized account models** in creditcards/, wallets/, cash/ apps
+  - Status: Foundation complete, empty apps created
+  - Next: Implement when needed (later milestone)
 
 ## 📋 TODO - Priority Order
 
-### 🔥 HIGH PRIORITY: Account Model Refactoring
-**Objective:** Split unified Account model into specialized models across separate apps
+### 🔥 Account Model Foundation - ✅ COMPLETED
+**Objective:** Create foundation for specialized account types
 
 **Phase 1: Preparation** ✅
 - [x] Create detailed refactoring plan
@@ -53,87 +76,29 @@
 - [x] Update SDD with new ERD and tables
 - [x] Document risks and mitigation strategies
 
-**Phase 2: Create New Apps and Models** 🔜
-- [ ] Create `creditcards` app
-- [ ] Create `wallets` app
-- [ ] Create `cash` app
-- [ ] Create `core/models.py` with BaseAccount abstract model
-- [ ] Define SavingsAccount model in `accounts/`
-- [ ] Define CreditCard model in `creditcards/`
-- [ ] Define DigitalWallet model in `wallets/`
-- [ ] Define CashAccount model in `cash/`
-- [ ] Define FixedDeposit model in `fds/`
-- [ ] Define LoanAccount model in `loans/`
-- [ ] Create balance models for each account type
+**Phase 2: Foundation Implementation** ✅
+- [x] Create BaseAccount abstract model in core/models.py
+- [x] Refactor Account → BankAccount (inherits BaseAccount)
+- [x] Refactor AccountBalance → BankAccountBalance
+- [x] Update table names in schema.sql
+- [x] Limit ACCOUNT_TYPE_CHOICES to bank types only (savings, checking, current, salary)
+- [x] Create empty apps: creditcards/, wallets/, cash/
+- [x] Update all views to use BankAccount
+- [x] Update all forms to use BankAccountForm
+- [x] Update admin to use BankAccountAdmin
+- [x] Create and apply migrations
+- [x] Data migration: convert capitalized types to lowercase
+- [x] Remove .title() normalization from save method
+- [x] Update dashboard to use BankAccount
 
-**Phase 3: Update Settings and Register Apps**
-- [ ] Add new apps to INSTALLED_APPS
-- [ ] Register models in admin.py for each app
-- [ ] Configure admin interfaces
-
-**Phase 4: Data Migration Strategy**
-- [ ] Run makemigrations for all new apps
-- [ ] Create custom data migration script
-- [ ] Test migration on database copy
-- [ ] Implement rollback plan
-- [ ] Create verification management command
-
-**Phase 5: Update Views and URLs**
-- [ ] Create unified AllAccountsListView in core/views.py
-- [ ] Create SavingsAccount CRUD views
-- [ ] Create CreditCard CRUD views
-- [ ] Create DigitalWallet CRUD views
-- [ ] Create CashAccount CRUD views
-- [ ] Create FixedDeposit CRUD views
-- [ ] Create LoanAccount CRUD views
-- [ ] Update URL patterns (unified + type-specific routes)
-
-**Phase 6: Update Templates**
-- [ ] Create templates/accounts/all_accounts_list.html (unified view)
-- [ ] Create savings account templates
-- [ ] Create credit card templates
-- [ ] Create digital wallet templates
-- [ ] Create cash account templates
-- [ ] Create FD templates
-- [ ] Create loan templates
-
-**Phase 7: Dashboard Integration**
-- [ ] Update dashboard view to fetch all account types
-- [ ] Update dashboard template to show categorized accounts
-- [ ] Update account widgets and stats
-
-**Phase 8: Update Forms**
-- [ ] Create SavingsAccountForm
-- [ ] Create CreditCardForm
-- [ ] Create DigitalWalletForm
-- [ ] Create CashAccountForm
-- [ ] Create FixedDepositForm
-- [ ] Create LoanAccountForm
-
-**Phase 9: Ledger Integration (Future)**
-- [ ] Update Posting model with GenericForeignKey
-- [ ] Create helper functions for account resolution
-- [ ] Update transaction logic to work with all account types
-
-**Phase 10: Testing**
-- [ ] Write unit tests for each account type
-- [ ] Write integration tests for data migration
-- [ ] Test CRUD operations for all types
-- [ ] Test balance calculations
-- [ ] Test GenericFK relationships
-
-**Phase 11: Documentation**
-- [ ] Create migration guide for users
-- [ ] Update README with new architecture
-- [ ] Document GenericFK usage patterns
-
-**Phase 12: Deployment**
-- [ ] Backup production database
-- [ ] Deploy new code
-- [ ] Run migrations
-- [ ] Verify data integrity
-- [ ] Monitor for issues
-- [ ] Drop legacy tables after 1 week
+**Phase 3: Future - Specialized Apps Implementation** 🔜
+- [ ] Implement CreditCard model in creditcards/ app
+- [ ] Implement DigitalWallet model in wallets/ app
+- [ ] Implement CashAccount model in cash/ app
+- [ ] Add apps to INSTALLED_APPS when needed
+- [ ] Create specialized views and forms for each type
+- [ ] Migrate existing data to specialized models
+- [ ] Implement GenericForeignKey for ledger integration
 
 ---
 
@@ -150,7 +115,7 @@
 
 ### 2️⃣ Accounts (CRUD) - ✅ COMPLETED
 - [x] Accounts list page (desktop + mobile responsive)
-- [x] Create new account form (make dashboard button functional)
+- [x] Create new account form (dashboard button functional)
 - [x] Account type selection with icons
 - [x] Edit account details
 - [x] Delete account (with transaction dependency checks)
@@ -158,6 +123,10 @@
 - [x] Upload/update account picture
 - [x] Account balance display and calculations
 - [x] Account status (active/inactive)
+- [x] Account number visibility toggle (eye icon)
+- [x] Copy account number to clipboard functionality
+- [x] Shared header/sidebar navigation on all account pages
+- [x] Name field stored as-is (no automatic title case)
 
 ### 3️⃣ Transactions - HIGH PRIORITY
 **Models First:**
@@ -314,4 +283,4 @@
 - [ ] Telegram/Email notifications
 
 ---
-**Last Updated:** 16 November 2025
+**Last Updated:** 22 November 2025
