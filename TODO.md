@@ -3,8 +3,8 @@
 ## ✅ Completed
 - [x] Django project setup with all apps
 - [x] Database models: Categories (hierarchical, 3-level max)
-- [x] Database models: Accounts (6 types with encryption)
-- [x] Database models: AccountBalance (materialized table)
+- [x] Database models: Accounts (6 types with encryption) - **LEGACY, TO BE REFACTORED**
+- [x] Database models: AccountBalance (materialized table) - **LEGACY, TO BE REFACTORED**
 - [x] Migrations created and applied
 - [x] Superuser created
 - [x] Authentication: Login page
@@ -23,11 +23,119 @@
 - [x] Categories: Create category form
 - [x] Categories: Edit category
 - [x] Categories: Delete category with validation
+- [x] Categories: Title case storage
+- [x] Accounts: List page (responsive card grid) - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Create account form (dashboard button functional) - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Edit account details - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Delete account with validation - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Account detail page with information - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Upload/update account picture - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Color customization - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Toggle status (active/archived) - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Title case storage - **LEGACY, TO BE REFACTORED**
+- [x] **Account Refactoring Plan Created** (docs/ACCOUNT_REFACTORING_PLAN.md)
+- [x] **FDD Updated** with specialized account types
+- [x] **SDD Updated** with new ERD and table structure
 
 ## 🚧 In Progress
-- None
+- [ ] **MAJOR REFACTORING: Account Model Split** (see docs/ACCOUNT_REFACTORING_PLAN.md)
+  - Status: Planning phase complete, awaiting user approval
+  - Next: Begin Phase 2 implementation
 
 ## 📋 TODO - Priority Order
+
+### 🔥 HIGH PRIORITY: Account Model Refactoring
+**Objective:** Split unified Account model into specialized models across separate apps
+
+**Phase 1: Preparation** ✅
+- [x] Create detailed refactoring plan
+- [x] Update FDD with specialized account structures
+- [x] Update SDD with new ERD and tables
+- [x] Document risks and mitigation strategies
+
+**Phase 2: Create New Apps and Models** 🔜
+- [ ] Create `creditcards` app
+- [ ] Create `wallets` app
+- [ ] Create `cash` app
+- [ ] Create `core/models.py` with BaseAccount abstract model
+- [ ] Define SavingsAccount model in `accounts/`
+- [ ] Define CreditCard model in `creditcards/`
+- [ ] Define DigitalWallet model in `wallets/`
+- [ ] Define CashAccount model in `cash/`
+- [ ] Define FixedDeposit model in `fds/`
+- [ ] Define LoanAccount model in `loans/`
+- [ ] Create balance models for each account type
+
+**Phase 3: Update Settings and Register Apps**
+- [ ] Add new apps to INSTALLED_APPS
+- [ ] Register models in admin.py for each app
+- [ ] Configure admin interfaces
+
+**Phase 4: Data Migration Strategy**
+- [ ] Run makemigrations for all new apps
+- [ ] Create custom data migration script
+- [ ] Test migration on database copy
+- [ ] Implement rollback plan
+- [ ] Create verification management command
+
+**Phase 5: Update Views and URLs**
+- [ ] Create unified AllAccountsListView in core/views.py
+- [ ] Create SavingsAccount CRUD views
+- [ ] Create CreditCard CRUD views
+- [ ] Create DigitalWallet CRUD views
+- [ ] Create CashAccount CRUD views
+- [ ] Create FixedDeposit CRUD views
+- [ ] Create LoanAccount CRUD views
+- [ ] Update URL patterns (unified + type-specific routes)
+
+**Phase 6: Update Templates**
+- [ ] Create templates/accounts/all_accounts_list.html (unified view)
+- [ ] Create savings account templates
+- [ ] Create credit card templates
+- [ ] Create digital wallet templates
+- [ ] Create cash account templates
+- [ ] Create FD templates
+- [ ] Create loan templates
+
+**Phase 7: Dashboard Integration**
+- [ ] Update dashboard view to fetch all account types
+- [ ] Update dashboard template to show categorized accounts
+- [ ] Update account widgets and stats
+
+**Phase 8: Update Forms**
+- [ ] Create SavingsAccountForm
+- [ ] Create CreditCardForm
+- [ ] Create DigitalWalletForm
+- [ ] Create CashAccountForm
+- [ ] Create FixedDepositForm
+- [ ] Create LoanAccountForm
+
+**Phase 9: Ledger Integration (Future)**
+- [ ] Update Posting model with GenericForeignKey
+- [ ] Create helper functions for account resolution
+- [ ] Update transaction logic to work with all account types
+
+**Phase 10: Testing**
+- [ ] Write unit tests for each account type
+- [ ] Write integration tests for data migration
+- [ ] Test CRUD operations for all types
+- [ ] Test balance calculations
+- [ ] Test GenericFK relationships
+
+**Phase 11: Documentation**
+- [ ] Create migration guide for users
+- [ ] Update README with new architecture
+- [ ] Document GenericFK usage patterns
+
+**Phase 12: Deployment**
+- [ ] Backup production database
+- [ ] Deploy new code
+- [ ] Run migrations
+- [ ] Verify data integrity
+- [ ] Monitor for issues
+- [ ] Drop legacy tables after 1 week
+
+---
 
 ### 1️⃣ Categories (CRUD) - ✅ COMPLETED
 - [x] Categories list/tree view (desktop + mobile responsive)
@@ -39,16 +147,17 @@
 - [ ] Seed default categories for new users
 - [ ] Category reassignment when deleting (for transactions - pending transaction model)
 
-### 2️⃣ Accounts (CRUD) - HIGH PRIORITY
-- [ ] Accounts list page (desktop + mobile responsive)
-- [ ] Create new account form (make dashboard button functional)
-- [ ] Account type selection with icons
-- [ ] Edit account details
-- [ ] Delete account (with transaction dependency checks)
-- [ ] Account details page with transaction history
-- [ ] Upload/update account picture
-- [ ] Account balance display and calculations
-- [ ] Account status (active/inactive)
+
+### 2️⃣ Accounts (CRUD) - ✅ COMPLETED
+- [x] Accounts list page (desktop + mobile responsive)
+- [x] Create new account form (make dashboard button functional)
+- [x] Account type selection with icons
+- [x] Edit account details
+- [x] Delete account (with transaction dependency checks)
+- [x] Account details page with transaction history placeholder
+- [x] Upload/update account picture
+- [x] Account balance display and calculations
+- [x] Account status (active/inactive)
 
 ### 3️⃣ Transactions - HIGH PRIORITY
 **Models First:**
