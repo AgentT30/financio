@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete Transfer - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-2xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'transfers:transfer_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Transfers
+                </a>
+
+                <!-- Delete Confirmation Card -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-red-200 dark:border-red-900 p-8">
+                    <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full mb-4">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white text-center mb-2">Delete Transfer</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-center mb-6">
+                        Are you sure you want to delete this transfer? This action cannot be undone.
+                    </p>
+
+                    <!-- Transfer Details -->
+                    <div class="bg-gray-50 dark:bg-dark-bg rounded-lg p-4 mb-6 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">Date:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ transfer.datetime_ist|date:"d M Y, h:i A" }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">From:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ transfer.from_account.name }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">To:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ transfer.to_account.name }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">Amount:</span>
+                            <span class="text-gray-900 dark:text-white font-bold">₹{{ transfer.amount }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">Method:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">{{ transfer.get_method_type_display }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600 dark:text-gray-400">Memo:</span>
+                            <span class="text-gray-900 dark:text-white font-medium text-right max-w-xs">{{ transfer.memo|truncatewords:15 }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <form method="post" class="flex gap-4">
+                        {% csrf_token %}
+                        <button type="submit" class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors">
+                            Yes, Delete Transfer
+                        </button>
+                        <a href="{% url 'transfers:transfer_list' %}" class="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm font-bold transition-colors text-center">
+                            Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

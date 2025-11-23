@@ -29,10 +29,9 @@
             <div class="flex items-center justify-end gap-2 md:gap-4">
                 <!-- Desktop Navigation - Hidden on mobile -->
                 <div class="hidden lg:flex items-center gap-6">
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary  separation of concerns.
-dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
+                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
                     <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'account_list' %}">Accounts</a>
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Transactions</a>
+                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'transactions:transaction_list' %}">Transactions</a>
                     <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Reports</a>
                 </div>
                 <!-- Theme Toggle -->
@@ -79,13 +78,13 @@ dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
                                 </svg>
                                 <p class="text-sm font-medium leading-normal">Dashboard</p>
                             </a>
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
+                            <a href="{% url 'account_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                                     <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path>
                                 </svg>
                                 <p class="text-sm font-medium leading-normal">Accounts</p>
                             </a>
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
+                            <a href="{% url 'transactions:transaction_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                                     <path d="M80,64a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H88A8,8,0,0,1,80,64Zm136,56H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm0,64H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16ZM44,52A12,12,0,1,0,56,64,12,12,0,0,0,44,52Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,116Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,180Z"></path>
                                 </svg>
@@ -179,15 +178,15 @@ dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
                     <div class="mt-6">
                         <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Quick actions</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                            <a href="{% url 'transactions:transaction_create' %}" class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">New Transaction</span>
-                            </button>
+                            </a>
                             <a href="{% url 'account_create' %}" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">Add Account</span>
                             </a>
-                            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                            <a href="{% url 'transactions:transaction_list' %}?view=transfers" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">Transfer Money</span>
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>

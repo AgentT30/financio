@@ -23,6 +23,8 @@ urlpatterns = [
     path('auth/', include('authn.urls')),
     path('categories/', include('categories.urls')),
     path('accounts/', include('accounts.urls')),
+    path('transactions/', include('transactions.urls')),
+    path('transfers/', include('transfers.urls')),
     path('', include('core.urls')),
 ]
 

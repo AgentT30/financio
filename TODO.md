@@ -32,7 +32,7 @@
 - [x] Accounts: Upload/update account picture - **LEGACY, TO BE REFACTORED**
 - [x] Accounts: Color customization - **LEGACY, TO BE REFACTORED**
 - [x] Accounts: Toggle status (active/archived) - **LEGACY, TO BE REFACTORED**
-- [x] Accounts: Title case storage - **LEGACY, TO BE REFACTORED**
+- [x] Accounts: Name and institution stored as-is (no automatic title case) - **LEGACY, TO BE REFACTORED**
 - [x] **Account Refactoring Plan Created** (docs/ACCOUNT_REFACTORING_PLAN.md)
 - [x] **FDD Updated** with specialized account types
 - [x] **SDD Updated** with new ERD and table structure
@@ -128,25 +128,223 @@
 - [x] Shared header/sidebar navigation on all account pages
 - [x] Name field stored as-is (no automatic title case)
 
-### 3️⃣ Transactions - HIGH PRIORITY
-**Models First:**
-- [ ] Create Transaction model (amount, date, description, type)
-- [ ] Create Ledger model (double-entry bookkeeping - debit/credit entries)
-- [ ] Implement auto-generation of balancing ledger entries
-- [ ] Link transactions to categories and accounts
-- [ ] Transaction validation logic (balance checks, date validation)
-- [ ] Create migrations for transaction models
-- [ ] Signal handlers for auto-updating AccountBalance
+### 3️⃣ Transactions & Ledger System - 🚧 IN PROGRESS
+**CURRENT PHASE: Foundation - Models & Services**
 
-**Then UI (Desktop + Mobile Responsive):**
-- [ ] Transaction list/history page with filters
-- [ ] Create transaction form for income/expense (make dashboard button functional)
-- [ ] Transfer between accounts form
-- [ ] Transaction edit functionality
-- [ ] Transaction delete with ledger cleanup
-- [ ] Transaction filters (date range, category, account, type)
-- [ ] Search functionality
-- [ ] Pagination for large transaction lists
+**Specifications:**
+- Transaction type: `income`/`expense` enum (user-friendly)
+- Payment methods: UPI, Card, Netbanking, Cash, Wallet, IMPS, NEFT, RTGS, Cheque, Other
+- Datetime storage: IST (via Django TIME_ZONE='Asia/Kolkata')
+- GenericForeignKey: Polymorphic account references (BankAccount now, others later)
+- Double-entry ledger: Separate Income Control & Expense Control accounts
+- Materialized balances: Atomic updates via BankAccountBalance
+
+**Phase 1A: Activity Logging Foundation** ✅ COMPLETED
+- [x] Create ActivityLog model (activity/models.py)
+  - GenericForeignKey for tracking any model
+  - JSON field for change tracking
+  - IP address and user agent capture
+  - IST timestamp
+- [x] Create activity logging utilities (activity/utils.py)
+  - log_activity() helper function
+  - track_model_changes() for field-level diffs
+- [x] Update activity/admin.py with ActivityLogAdmin
+- [x] Create migration for activity app
+- [x] Test: python manage.py makemigrations activity && migrate activity
+
+**Phase 1B: Ledger Models (Core Double-Entry)** ✅ COMPLETED
+- [x] Create ControlAccount model (ledger/models.py)
+  - Income Control Account (synthetic ledger account)
+  - Expense Control Account (synthetic ledger account)
+  - Only 2 instances should exist
+- [x] Create JournalEntry model (ledger/models.py)
+  - Links to user, occurred_at (IST), memo
+  - validate_balanced() method (postings sum to zero)
+  - One-to-one with Transaction model
+- [x] Create Posting model (ledger/models.py)
+  - GenericForeignKey to any account type
+  - Signed amount (positive=debit, negative=credit)
+  - posting_type enum (debit/credit)
+  - Links to JournalEntry
+- [x] Create LedgerService class (ledger/services.py)
+  - create_simple_entry() for income/expense transactions
+  - create_transfer_entry() for account transfers
+  - _update_account_balance() for atomic balance updates
+- [x] Update ledger/admin.py with model admins
+- [x] Create management command: create_control_accounts.py
+- [x] Create migration for ledger app
+- [x] Test: python manage.py makemigrations ledger && migrate ledger
+- [x] Test: python manage.py create_control_accounts
+- [x] Update schema.sql with new tables (activity_logs, control_accounts, journal_entries, postings)
+
+**Phase 1C: Transaction Model** ✅ COMPLETED
+- [x] Create Transaction model (transactions/models.py)
+  - datetime_ist, transaction_type (income/expense), amount (positive)
+  - GenericForeignKey to account (BankAccount, etc.)
+  - method_type enum (UPI, Card, Netbanking, Cash, Wallet, IMPS/NEFT/RTGS, Cheque, Other)
+  - purpose (TextField), category (FK to Category)
+  - journal_entry (OneToOne to JournalEntry)
+  - Soft delete via deleted_at
+  - Validation: amount > 0, category type matches transaction type
+- [x] Update Transaction form (transactions/forms.py)
+  - Date/time fields for IST datetime
+  - Account selector (currently BankAccount only)
+  - Category dropdown (filtered by type)
+  - Method type selector
+  - Amount and purpose fields
+- [x] Update transactions/admin.py with TransactionAdmin
+- [x] Create migration for transactions app
+- [x] Test: python manage.py makemigrations transactions && migrate transactions
+- [x] Update schema.sql with transactions table
+- [x] Database constraint update: Consolidated IMPS/NEFT/RTGS payment methods
+
+**Phase 1D: Transaction Views & Templates** ✅ COMPLETED
+- [x] Create transaction_list view (transactions/views.py)
+  - Filter by date range, account, category, type
+  - Pagination (20 per page)
+  - Search by purpose
+  - Exclude soft-deleted
+- [x] Create transaction_create view (transactions/views.py)
+  - Use LedgerService to create JournalEntry + Postings
+  - Update BankAccountBalance atomically
+  - Log activity via activity.utils.log_activity()
+  - Redirect to transaction list on success
+- [x] Create transaction_edit view (transactions/views.py)
+  - Load existing transaction
+  - Update transaction + journal entry
+  - Log activity with field changes
+- [x] Create transaction_delete view (transactions/views.py)
+  - Soft delete (set deleted_at)
+  - Log activity
+- [x] Create transaction list template (templates/transactions/transaction_list.html)
+  - Responsive table/card layout
+  - Filter panel (date, account, category, type)
+  - Search bar
+  - Pagination controls
+  - Income/Expense visual distinction
+- [x] Create transaction form template (templates/transactions/transaction_form.html)
+  - Date/time picker
+  - Account selector
+  - Category dropdown (filtered by JS based on transaction type)
+  - Custom CategorySelectWidget for data-type attributes
+  - Amount input with validation
+  - Purpose textarea
+- [x] Create transaction confirm delete template (templates/transactions/transaction_confirm_delete.html)
+- [x] Update transactions/urls.py with URL patterns
+- [x] Update main urls.py to include transactions URLs
+- [x] Update LedgerService.create_simple_entry() signature to match view usage
+- [x] Fix category dropdown rendering with proper data-type attributes
+- [x] Capitalize category labels (remove "Type: " prefix)
+
+**Phase 1E: Transfers Implementation** ✅ COMPLETED
+- [x] Create Transfer model (transfers/models.py)
+  - Links two accounts via GenericForeignKey
+  - Amount, method_type, memo, datetime_ist
+  - OneToOne with JournalEntry
+  - Soft delete support
+  - Validation: user ownership, from ≠ to
+  - skip_validation parameter in save()
+- [x] Create TransferForm (transfers/forms.py)
+  - Converted from ModelForm to regular Form
+  - Custom from_account/to_account ModelChoiceFields
+  - Validation: from ≠ to, amount > 0
+  - clean() method for datetime and account setup
+- [x] Create transfer views (transfers/views.py)
+  - transfer_create using LedgerService.create_transfer_entry()
+  - Unpacks tuple return: (journal_entry, from_balance, to_balance)
+  - skip_validation=True on save
+  - Activity logging with correct parameters (obj, request)
+  - transfer_delete (soft delete with balance reversal)
+- [x] Create transfer templates
+  - transfer_form.html with "Add Transaction Instead" toggle
+  - transfer_confirm_delete.html
+- [x] Update transfers/urls.py and main urls.py
+- [x] Update transfers/admin.py with TransferAdmin
+- [x] Create and apply migrations
+- [x] Update schema.sql with transfers table
+- [x] **Unified Transactions/Transfers View:**
+  - [x] Modified transaction_list view for dual-mode operation (transactions/transfers)
+  - [x] Query parameter-based view switching (?view=transfers)
+  - [x] Conditional filtering and data display
+  - [x] Tab navigation in transaction_list.html
+  - [x] Separate action buttons (Add Transaction + Add Transfer)
+  - [x] Transfer-specific filters (from_account, to_account)
+  - [x] Conditional table rendering for transactions vs transfers
+  - [x] Mobile card views for both types
+  - [x] Updated pagination to preserve view parameter
+  - [x] Updated empty states for both views
+  - [x] Dashboard "Transfer Money" button links to ?view=transfers
+  - [x] Form toggle buttons between transaction/transfer forms
+  - [x] Fixed template syntax errors (pluralize filter, missing endif)
+  - [x] Fixed navigation links in header and sidebar
+- [x] **Bug Fixes:**
+  - [x] Fixed "Transfer has no user" error - check user_id before validation
+  - [x] Converted TransferForm from ModelForm to Form to avoid GenericFK validation
+  - [x] Fixed LedgerService tuple unpacking in view
+  - [x] Fixed log_activity parameters (obj instead of content_object)
+  - [x] Removed orphaned journal entries from failed attempts
+  - [x] Fixed navigation links (header.html and sidebar.html)
+
+**Phase 1D+: Transaction Bug Fixes** ✅ COMPLETED
+- [x] Fixed Transaction model validation
+  - Added user_id check in clean() method
+  - Added skip_validation parameter to save()
+- [x] Fixed TransactionForm
+  - Removed GenericFK fields from Meta.fields
+  - Removed hidden field widget assignments
+  - Set GenericFK fields directly in view from cleaned_data
+- [x] Fixed transaction_create view
+  - Get account and datetime_ist from cleaned_data
+  - Set GenericFK fields from account object
+  - Use skip_validation=True on save
+  - Fixed log_activity parameter (obj instead of content_object)
+- [x] Fixed transaction_edit view
+  - Fixed log_activity parameter
+- [x] Fixed transaction_delete view
+  - Added balance reversal logic
+  - Wrapped in db_transaction.atomic()
+  - Calculate reverse delta (income: -amount, expense: +amount)
+  - Update account balance using LedgerService
+  - Import db_transaction to avoid select_for_update error
+- [x] SQL patch commands added for restoring soft-deleted transactions
+
+**Phase 1F: Integration & Testing** 🚧 IN PROGRESS
+- [ ] Update dashboard view to show recent transactions
+- [ ] Update account detail page to show transaction history
+- [ ] Update category.can_delete() to check transaction usage
+- [ ] Update BankAccount.can_delete() to check transaction usage
+- [x] Make "Transfer Money" dashboard button functional
+- [ ] Update schema.sql with all new tables (if needed)
+- [ ] **Integration Testing:**
+  - [ ] Create income transaction → verify balance increase
+  - [ ] Create expense transaction → verify balance decrease
+  - [ ] Create transfer → verify both balances update
+  - [ ] Delete transaction → verify balance reverses correctly
+  - [ ] Delete transfer → verify both balances reverse correctly
+  - [ ] Verify journal entries sum to zero
+  - [ ] Verify activity logs created for all operations
+  - [ ] Test soft delete restoration via SQL patch
+  - [ ] Test category filtering in transaction form
+  - [ ] Test account filtering in transaction list
+  - [ ] Test date range filtering
+  - [ ] Test pagination with view parameter preservation
+  - [ ] Test tab switching between transactions/transfers
+  - [ ] Test form toggle buttons
+  - [ ] Test navigation links throughout app
+  - [ ] Test mobile responsiveness for all transaction/transfer pages
+  - [ ] Verify GenericForeignKey works with BankAccount
+  - [ ] Test validation: category type matches transaction type
+  - [ ] Test validation: amount > 0
+  - [ ] Test validation: from ≠ to for transfers
+  - [ ] Test edge cases: missing category, missing account
+  - [ ] Test concurrent balance updates (race conditions)
+
+**Phase 1G: Documentation & Cleanup**
+- [ ] Update README.md with transaction features
+- [ ] Update FDD if needed
+- [ ] Update SDD if needed
+- [ ] Add inline code documentation
+- [ ] Test error handling and edge cases
 
 ### 4️⃣ Investments - MEDIUM PRIORITY
 **Models First:**
@@ -283,4 +481,4 @@
 - [ ] Telegram/Email notifications
 
 ---
-**Last Updated:** 22 November 2025
+**Last Updated:** 23 November 2025

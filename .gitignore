@@ -39,7 +39,8 @@ db.sqlite3
 db.sqlite3-journal
 /staticfiles/
 /media/
-/migrations/
+migrations/
+__pycache__/
 
 # Environment variables
 .env

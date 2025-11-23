@@ -89,17 +89,3 @@ class BankAccountForm(forms.ModelForm):
         if ifsc:
             return ifsc.upper()
         return ifsc
-    
-    def clean_name(self):
-        """Convert name to Title Case for storage"""
-        name = self.cleaned_data.get('name')
-        if name:
-            return name.title()
-        return name
-    
-    def clean_institution(self):
-        """Convert institution to Title Case for storage"""
-        institution = self.cleaned_data.get('institution')
-        if institution:
-            return institution.title()
-        return institution

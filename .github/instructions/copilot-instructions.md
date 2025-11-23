@@ -58,5 +58,6 @@ Development workflow:
 - Always ask for clarifications before proceeding with the implementation if the requirements are not clear.
 - Follow the established project structure and coding standards.
 - Always keep the TODO.md and documentation files updated with the latest changes and next steps.
+- Always update the schema.sql file with the latest database schema changes.
 - For any database changes that need to be done, add the queries in the patch.sql file.
 - Do not run any commands, give me the commands and I will run them.
