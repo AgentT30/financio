@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load transaction_tags %}
 
 {% block title %}{{ account.name }} - Financio{% endblock %}
 
@@ -134,14 +135,282 @@
                     {% endif %}
                 </div>
 
-                <!-- Recent Transactions (Placeholder) -->
-                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Recent Transactions</h2>
-                    <div class="text-center py-8">
-                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm">No transactions yet. Transactions will appear here once the transaction module is implemented.</p>
+                <!-- Transaction History -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Transaction History</h2>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        <nav class="flex -mb-px">
+                            <button onclick="switchTab('transactions')" id="transactions-tab" class="tab-button px-6 py-3 text-sm font-medium border-b-2 border-primary text-primary">
+                                Transactions ({{ transactions.paginator.count }})
+                            </button>
+                            <button onclick="switchTab('transfers')" id="transfers-tab" class="tab-button px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600">
+                                Transfers ({{ transfers.paginator.count }})
+                            </button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Transactions Tab Content -->
+                    <div id="transactions-content" class="tab-content">
+                        {% if transactions %}
+                            <!-- Desktop Table View -->
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Purpose</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for transaction in transactions %}
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transaction.datetime_ist|date:"d M Y, g:i A" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transaction.category.name|title }}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ transaction.purpose|truncatewords:10 }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|floatformat:0 }}</span>
+                                                {% else %}
+                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|floatformat:0 }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for transaction in transactions %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ transaction.datetime_ist|date:"d M Y" }}</span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ transaction.category.name|title }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ transaction.purpose|truncatewords:15 }}</p>
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            {% if transaction.transaction_type == 'income' %}
+                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|floatformat:0 }}</span>
+                                            {% else %}
+                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|floatformat:0 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if transactions.has_other_pages %}
+                            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
+                                </div>
+                                <div class="flex gap-2">
+                                    {% if transactions.has_previous %}
+                                        <a href="?transactions_page={{ transactions.previous_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Previous
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Previous
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if transactions.has_next %}
+                                        <a href="?transactions_page={{ transactions.next_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Next
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Next
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm">No transactions yet for this account</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Transfers Tab Content -->
+                    <div id="transfers-content" class="tab-content hidden">
+                        {% if transfers %}
+                            <!-- Desktop Table View -->
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Direction</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Other Account</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Memo</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for transfer in transfers %}
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transfer.datetime_ist|date:"d M Y, g:i A" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                                                        Outgoing
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                        Incoming
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-900 dark:text-white">
+                                                    {% if transfer|is_outgoing_transfer:account %}
+                                                        {{ transfer|get_transfer_to_account }}
+                                                    {% else %}
+                                                        {{ transfer|get_transfer_from_account }}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ transfer.memo|truncatewords:10|default:"-" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|floatformat:0 }}</span>
+                                                {% else %}
+                                                    <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|floatformat:0 }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for transfer in transfers %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                                                        Outgoing
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                        Incoming
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ transfer.datetime_ist|date:"d M Y" }}</span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    To: {{ transfer|get_transfer_to_account }}
+                                                {% else %}
+                                                    From: {{ transfer|get_transfer_from_account }}
+                                                {% endif %}
+                                            </p>
+                                            {% if transfer.memo %}
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ transfer.memo|truncatewords:15 }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            {% if transfer|is_outgoing_transfer:account %}
+                                                <span class="text-base font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|floatformat:0 }}</span>
+                                            {% else %}
+                                                <span class="text-base font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|floatformat:0 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if transfers.has_other_pages %}
+                            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    Page {{ transfers.number }} of {{ transfers.paginator.num_pages }}
+                                </div>
+                                <div class="flex gap-2">
+                                    {% if transfers.has_previous %}
+                                        <a href="?transfers_page={{ transfers.previous_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Previous
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Previous
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if transfers.has_next %}
+                                        <a href="?transfers_page={{ transfers.next_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Next
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Next
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm">No transfers yet for this account</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 </div>
@@ -190,6 +459,27 @@ function copyAccountNumber() {
     }).catch(function(err) {
         console.error('Failed to copy: ', err);
     });
+}
+
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remove active state from all tabs
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-primary', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-content').classList.remove('hidden');
+    
+    // Add active state to selected tab
+    const activeTab = document.getElementById(tabName + '-tab');
+    activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    activeTab.classList.add('border-primary', 'text-primary');
 }
 </script>
 {% endblock %}

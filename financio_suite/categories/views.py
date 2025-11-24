@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count
+from django.db.models.deletion import ProtectedError
 from .models import Category
 from .forms import CategoryForm
 
@@ -72,20 +73,24 @@ def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk, user=request.user)
     
     if request.method == 'POST':
-        name = category.name
+        name = category.name.title()
         
-        # Check if category has children
-        if category.children.exists():
-            messages.error(request, f'Cannot delete "{name}" because it has subcategories. Delete or reassign them first.')
+        # Check if category can be deleted
+        if not category.can_delete():
+            # Check specific reasons for better error messages
+            if category.children.filter(is_active=True).exists():
+                messages.error(request, f'Cannot delete "{name}" because it has subcategories. Delete or reassign them first.')
+            else:
+                messages.error(request, f'Cannot delete "{name}" because it is being used by transactions.')
             return redirect('category_list')
         
-        # TODO: Check if category has transactions when transaction model is ready
-        # if category.transactions.exists():
-        #     messages.error(request, f'Cannot delete "{name}" because it has transactions.')
-        #     return redirect('category_list')
+        try:
+            category.delete()
+            messages.success(request, f'Category "{name}" deleted successfully!')
+        except ProtectedError:
+            # Catch ProtectedError if can_delete() check missed something
+            messages.error(request, f'Cannot delete "{name}" because it is being used by transactions.')
         
-        category.delete()
-        messages.success(request, f'Category "{name}" deleted successfully!')
         return redirect('category_list')
     
     context = {

@@ -133,9 +133,35 @@ class BankAccount(BaseAccount):
             return self.opening_balance
     
     def can_delete(self):
-        """Check if account can be deleted (no transactions)"""
-        # Will implement when Transaction model exists
-        # For now, return True
+        """Check if account can be deleted (no transactions or transfers)"""
+        from django.contrib.contenttypes.models import ContentType
+        from transactions.models import Transaction
+        from transfers.models import Transfer
+        from django.db.models import Q
+        
+        # Get ContentType for this account
+        account_content_type = ContentType.objects.get_for_model(BankAccount)
+        
+        # Check if account has any non-deleted transactions
+        has_transactions = Transaction.objects.filter(
+            account_content_type=account_content_type,
+            account_object_id=self.id,
+            deleted_at__isnull=True
+        ).exists()
+        
+        if has_transactions:
+            return False
+        
+        # Check if account has any non-deleted transfers (either as from or to account)
+        has_transfers = Transfer.objects.filter(
+            Q(from_account_content_type=account_content_type, from_account_object_id=self.id) |
+            Q(to_account_content_type=account_content_type, to_account_object_id=self.id),
+            deleted_at__isnull=True
+        ).exists()
+        
+        if has_transfers:
+            return False
+        
         return True
 
 

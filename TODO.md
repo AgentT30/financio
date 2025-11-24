@@ -308,13 +308,37 @@
   - Import db_transaction to avoid select_for_update error
 - [x] SQL patch commands added for restoring soft-deleted transactions
 
-**Phase 1F: Integration & Testing** 🚧 IN PROGRESS
-- [ ] Update dashboard view to show recent transactions
-- [ ] Update account detail page to show transaction history
-- [ ] Update category.can_delete() to check transaction usage
-- [ ] Update BankAccount.can_delete() to check transaction usage
+**Phase 1F: Integration & Testing** ✅ COMPLETED
+- [x] Update dashboard view to show recent transactions
+  - Added month-to-date income/expense calculations
+  - Added recent transactions query (last 10)
+  - Display in dashboard with relative timestamps
+- [x] Update account detail page to show transaction history
+  - Added tabbed interface (Transactions/Transfers)
+  - Separate pagination for each tab (20 per page)
+  - Desktop table + mobile card responsive layouts
+  - Transaction/transfer direction indicators
+- [x] Update category.can_delete() to check transaction usage
+  - Check for transactions using the category
+  - Check for child categories
+- [x] Update BankAccount.can_delete() to check transaction usage
+  - Check for transactions linked to account
+  - Check for transfers (both from and to)
+- [x] **Deletion Safety with User-Friendly Errors:**
+  - Added ProtectedError exception handling in category_delete view
+  - Added ProtectedError exception handling in account_delete view
+  - Show friendly messages instead of Django error pages
+- [x] **Template Tag System:**
+  - Created transaction_tags template library
+  - Custom filters: get_account(), get_transfer_from_account(), get_transfer_to_account()
+  - is_outgoing_transfer() filter for transfer direction detection
+- [x] **Dashboard UI Refinements:**
+  - Removed Categories card from overview
+  - Made Total Accounts card clickable (links to accounts page)
+  - Removed redundant Accounts section
+  - Category names displayed in capitalized format
 - [x] Make "Transfer Money" dashboard button functional
-- [ ] Update schema.sql with all new tables (if needed)
+- [x] Update schema.sql with all new tables
 - [ ] **Integration Testing:**
   - [ ] Create income transaction → verify balance increase
   - [ ] Create expense transaction → verify balance decrease

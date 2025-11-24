@@ -162,8 +162,20 @@ class Category(models.Model):
     
     def can_delete(self):
         """Check if category can be deleted (not in use by transactions)"""
-        # Will implement this check when Transaction model exists
-        # For now, return True
+        # Check if category has any non-deleted transactions
+        from transactions.models import Transaction
+        has_transactions = Transaction.objects.filter(
+            category=self,
+            deleted_at__isnull=True
+        ).exists()
+        
+        if has_transactions:
+            return False
+        
+        # Also check if it has children categories
+        if self.children.filter(is_active=True).exists():
+            return False
+        
         return True
     
     def get_depth(self):

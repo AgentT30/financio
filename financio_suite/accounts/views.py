@@ -1,9 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.core.paginator import Paginator
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.deletion import ProtectedError
 from .models import BankAccount, BankAccountBalance
 from .forms import BankAccountForm
+from transactions.models import Transaction
+from transfers.models import Transfer
 
 
 @login_required
@@ -82,16 +87,44 @@ def account_edit(request, pk):
 
 @login_required
 def account_detail(request, pk):
-    """View bank account details."""
+    """View bank account details with transaction history."""
     account = get_object_or_404(BankAccount, pk=pk, user=request.user)
     
-    # TODO: Get recent transactions when Transaction model is ready
-    # transactions = account.transactions.all()[:10]
+    # Get ContentType for this account
+    account_content_type = ContentType.objects.get_for_model(BankAccount)
+    
+    # Get transactions for this account (filtered by GenericForeignKey)
+    transactions = Transaction.objects.filter(
+        user=request.user,
+        account_content_type=account_content_type,
+        account_object_id=account.id,
+        deleted_at__isnull=True
+    ).select_related('category').order_by('-datetime_ist')
+    
+    # Get transfers involving this account (either from or to)
+    transfers = Transfer.objects.filter(
+        user=request.user,
+        deleted_at__isnull=True
+    ).filter(
+        Q(from_account_content_type=account_content_type, from_account_object_id=account.id) |
+        Q(to_account_content_type=account_content_type, to_account_object_id=account.id)
+    ).order_by('-datetime_ist')
+    
+    # Pagination for transactions
+    transactions_paginator = Paginator(transactions, 20)
+    transactions_page_number = request.GET.get('transactions_page', 1)
+    transactions_page = transactions_paginator.get_page(transactions_page_number)
+    
+    # Pagination for transfers
+    transfers_paginator = Paginator(transfers, 20)
+    transfers_page_number = request.GET.get('transfers_page', 1)
+    transfers_page = transfers_paginator.get_page(transfers_page_number)
     
     context = {
         'account': account,
         'full_account_number': str(account.account_number) if account.account_number else None,
-        # 'transactions': transactions,
+        'transactions': transactions_page,
+        'transfers': transfers_page,
     }
     return render(request, 'accounts/account_detail.html', context)
 
@@ -106,12 +139,17 @@ def account_delete(request, pk):
         
         # Check if account can be deleted
         if not account.can_delete():
-            messages.error(request, f'Cannot delete "{name.title()}" because it has transactions.')
+            messages.error(request, f'Cannot delete "{name.title()}" because it has transactions or transfers.')
             return redirect('account_list')
         
-        # Delete the account (cascade will handle BankAccountBalance)
-        account.delete()
-        messages.success(request, f'Account "{name.title()}" deleted successfully!')
+        try:
+            # Delete the account (cascade will handle BankAccountBalance)
+            account.delete()
+            messages.success(request, f'Account "{name.title()}" deleted successfully!')
+        except ProtectedError:
+            # Catch ProtectedError if can_delete() check missed something
+            messages.error(request, f'Cannot delete "{name.title()}" because it has transactions or transfers.')
+        
         return redirect('account_list')
     
     context = {
