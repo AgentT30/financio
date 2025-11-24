@@ -68,9 +68,29 @@ def account_edit(request, pk):
     account = get_object_or_404(BankAccount, pk=pk, user=request.user)
     
     if request.method == 'POST':
+        # Store old opening balance to check if it changed
+        old_opening_balance = account.opening_balance
+        
         form = BankAccountForm(request.POST, request.FILES, instance=account)
         if form.is_valid():
-            form.save()
+            account = form.save()
+            
+            # If opening balance changed, update the materialized balance
+            # (only if no transactions have been recorded yet)
+            if old_opening_balance != account.opening_balance:
+                try:
+                    balance_record = account.balance
+                    # Only update if this is still the opening balance (no transactions)
+                    if balance_record.last_posting_id is None:
+                        balance_record.balance_amount = account.opening_balance
+                        balance_record.save()
+                except BankAccountBalance.DoesNotExist:
+                    # Create balance record if it doesn't exist
+                    BankAccountBalance.objects.create(
+                        account=account,
+                        balance_amount=account.opening_balance
+                    )
+            
             messages.success(request, f'Account "{account.name.title()}" updated successfully!')
             return redirect('account_list')
     else:

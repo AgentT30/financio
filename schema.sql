@@ -148,6 +148,110 @@ COMMENT ON COLUMN bank_account_balances.balance_amount IS 'Current balance calcu
 COMMENT ON COLUMN bank_account_balances.last_posting_id IS 'Last posting that updated this balance';
 
 -- ============================================================================
+-- CREDIT CARDS TABLE
+-- ============================================================================
+-- Stores user credit card accounts with encrypted sensitive data
+-- Inherits from BaseAccount abstract model in Django
+
+CREATE TABLE IF NOT EXISTS credit_cards (
+    id BIGSERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    
+    -- Institution details
+    institution VARCHAR(100) NOT NULL,
+    
+    -- Card identifiers (card_number and cvv stored encrypted via Django)
+    card_number BYTEA NOT NULL,  -- Encrypted field stored as binary
+    card_number_last4 VARCHAR(4) NOT NULL,
+    cvv BYTEA NOT NULL,  -- Encrypted CVV stored as binary
+    
+    -- Card type
+    card_type VARCHAR(20) NOT NULL DEFAULT 'visa' CHECK (card_type IN ('visa', 'mastercard', 'rupay', 'amex')),
+    
+    -- Credit limit and billing
+    credit_limit NUMERIC(18, 2) NOT NULL,
+    billing_day INTEGER NOT NULL CHECK (billing_day >= 1 AND billing_day <= 31),
+    due_day INTEGER NOT NULL CHECK (due_day >= 1 AND due_day <= 31),
+    expiry_date DATE NOT NULL,
+    
+    -- Financial information
+    opening_balance NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(3) NOT NULL DEFAULT 'INR',
+    
+    -- Dates and status
+    opened_on DATE NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+    
+    -- Additional information
+    notes TEXT NULL,
+    
+    -- Visual customization
+    picture VARCHAR(255) NULL,  -- Path to uploaded picture
+    color VARCHAR(7) NULL CHECK (color IS NULL OR color ~ '^#[0-9A-Fa-f]{6}$'),
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CONSTRAINT unique_creditcard_per_user UNIQUE (user_id, institution, card_number_last4)
+);
+
+-- Indexes for performance
+CREATE INDEX idx_credit_cards_user_id ON credit_cards(user_id);
+CREATE INDEX idx_credit_cards_status ON credit_cards(status);
+CREATE INDEX idx_credit_cards_card_type ON credit_cards(card_type);
+CREATE INDEX idx_cc_user_status ON credit_cards(user_id, status);
+
+-- Update trigger
+CREATE TRIGGER update_credit_cards_updated_at 
+    BEFORE UPDATE ON credit_cards 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Comments for documentation
+COMMENT ON TABLE credit_cards IS 'User credit card accounts with encrypted sensitive data';
+COMMENT ON COLUMN credit_cards.user_id IS 'Owner of the credit card';
+COMMENT ON COLUMN credit_cards.name IS 'Display name/nickname for the card';
+COMMENT ON COLUMN credit_cards.institution IS 'Issuing bank or financial institution';
+COMMENT ON COLUMN credit_cards.card_number IS 'Full card number (encrypted via Django)';
+COMMENT ON COLUMN credit_cards.card_number_last4 IS 'Last 4 digits for display';
+COMMENT ON COLUMN credit_cards.cvv IS 'Card CVV/CVV2 (encrypted via Django)';
+COMMENT ON COLUMN credit_cards.card_type IS 'Card network: visa, mastercard, rupay, amex';
+COMMENT ON COLUMN credit_cards.credit_limit IS 'Total credit limit on the card';
+COMMENT ON COLUMN credit_cards.billing_day IS 'Day of month when billing cycle starts (1-31)';
+COMMENT ON COLUMN credit_cards.due_day IS 'Day of month when payment is due (1-31)';
+COMMENT ON COLUMN credit_cards.expiry_date IS 'Card expiry date';
+COMMENT ON COLUMN credit_cards.opening_balance IS 'Initial balance (usually 0 or negative if owed)';
+COMMENT ON COLUMN credit_cards.status IS 'active or archived';
+
+-- ============================================================================
+-- CREDIT CARD BALANCES TABLE
+-- ============================================================================
+-- Materialized balance table for credit cards
+-- Fast balance lookups, updated atomically with ledger postings
+-- Note: Negative balance = amount owed, Positive = overpayment
+
+CREATE TABLE IF NOT EXISTS credit_card_balances (
+    account_id BIGINT PRIMARY KEY REFERENCES credit_cards(id) ON DELETE CASCADE,
+    balance_amount NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    last_posting_id BIGINT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Update trigger
+CREATE TRIGGER update_credit_card_balances_updated_at 
+    BEFORE UPDATE ON credit_card_balances 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Comments
+COMMENT ON TABLE credit_card_balances IS 'Materialized credit card balances for fast lookups';
+COMMENT ON COLUMN credit_card_balances.balance_amount IS 'Current balance (negative = owed, positive = overpayment)';
+COMMENT ON COLUMN credit_card_balances.last_posting_id IS 'Last posting that updated this balance';
+
+-- ============================================================================
 -- ACTIVITY LOGS TABLE
 -- ============================================================================
 -- Audit log for tracking user actions (CRUD operations)

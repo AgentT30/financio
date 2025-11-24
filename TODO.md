@@ -91,14 +91,49 @@
 - [x] Remove .title() normalization from save method
 - [x] Update dashboard to use BankAccount
 
-**Phase 3: Future - Specialized Apps Implementation** 🔜
-- [ ] Implement CreditCard model in creditcards/ app
+**Phase 3: Credit Cards Implementation** ✅ COMPLETED
+- [x] Implement CreditCard model in creditcards/ app
+  - [x] Created CreditCard model inheriting from BaseAccount
+  - [x] Added encrypted card_number and cvv fields (EncryptedCharField)
+  - [x] Mandatory fields: institution, credit_limit, billing_day, due_day, expiry_date
+  - [x] Card type choices: Visa, Mastercard, RuPay, American Express
+  - [x] Methods: available_credit(), amount_owed(), can_delete()
+- [x] Created CreditCardBalance materialized table
+- [x] Added 'creditcards' to INSTALLED_APPS
+- [x] Created migrations and applied successfully
+- [x] Updated schema.sql with credit_cards and credit_card_balances tables
+- [x] **CRUD Operations:**
+  - [x] CreditCardForm with validation (card number 13-19 digits, CVV 3-4 digits)
+  - [x] creditcard_list view with stats (total limit, available credit, amount owed)
+  - [x] creditcard_create view with balance initialization
+  - [x] creditcard_edit view with opening balance sync
+  - [x] creditcard_delete view with ProtectedError handling
+  - [x] creditcard_detail view with transaction/transfer history tabs
+  - [x] creditcard_toggle_status view
+- [x] **Templates:**
+  - [x] creditcard_list.html (responsive grid, 3 stat cards, card type icons)
+  - [x] creditcard_form.html (multi-section form, card number auto-formatting)
+  - [x] creditcard_detail.html (eye/copy icons for sensitive data, tabbed history)
+  - [x] creditcard_confirm_delete.html
+- [x] **UI Enhancements:**
+  - [x] Card number auto-formatting with spaces (JavaScript, frontend only)
+  - [x] Eye/copy icons for card number and CVV viewing
+  - [x] CVV field preservation in edit mode (shows ••• placeholder)
+  - [x] Institution name stored as-is (no auto-capitalization)
+  - [x] Ordinal suffixes for Billing/Due Day (1st, 2nd, 3rd, etc.)
+  - [x] 2 decimal places for Available Credit and Amount Owed
+- [x] **Bug Fixes:**
+  - [x] Opening balance synchronization with CreditCardBalance
+  - [x] Form styling consistency with BankAccountForm
+- [x] URL patterns configured in creditcards/urls.py
+- [x] Admin interface registered (CreditCardAdmin)
+
+**Phase 3A-3G: Credit Card Integration** 🚧 IN PROGRESS
+See detailed breakdown below in "Credit Card Integration - Full System Integration" section
+
+**Phase 4: Future - Other Specialized Apps** 🔜
 - [ ] Implement DigitalWallet model in wallets/ app
 - [ ] Implement CashAccount model in cash/ app
-- [ ] Add apps to INSTALLED_APPS when needed
-- [ ] Create specialized views and forms for each type
-- [ ] Migrate existing data to specialized models
-- [ ] Implement GenericForeignKey for ledger integration
 
 ---
 
@@ -370,6 +405,166 @@
 - [ ] Add inline code documentation
 - [ ] Test error handling and edge cases
 
+---
+
+### 3️⃣B Credit Card Integration - Full System Integration
+**Objective:** Integrate credit cards throughout the application for complete functionality
+
+**Specifications:**
+- Credit cards appear in same dropdown as bank accounts
+- Emoji indicators for account types (🏦 Bank, 💳 Credit Card)
+- Bill payment (Bank → Credit Card) reduces credit card debt
+- Net Worth = Bank balances + Investments (does NOT subtract credit card debt)
+- Combined "Accounts & Cards" page with separate sections
+
+**Phase 3A: Transaction & Transfer Integration** 🔜 NEXT
+- [ ] Update TransactionForm (transactions/forms.py)
+  - [ ] Create helper function to get all accounts (banks + credit cards)
+  - [ ] Add emoji prefix to account choices (🏦 for banks, 💳 for cards)
+  - [ ] Update account field to use combined queryset
+  - [ ] Ensure GenericForeignKey handles both BankAccount and CreditCard
+- [ ] Update TransferForm (transfers/forms.py)
+  - [ ] Update from_account field with combined queryset + emojis
+  - [ ] Update to_account field with combined queryset + emojis
+  - [ ] Support Bank → Credit Card (bill payments reduce debt)
+  - [ ] Support Credit Card → Bank (refunds/reversals increase debt)
+  - [ ] Support Credit Card → Credit Card (balance transfers)
+- [ ] Update transaction_create view
+  - [ ] Handle ContentType for both BankAccount and CreditCard
+  - [ ] Set correct GenericFK fields based on account type
+- [ ] Update transfer_create view
+  - [ ] Handle mixed account types in transfers
+  - [ ] Verify ledger service works with CreditCard
+- [ ] Test credit card transactions
+  - [ ] Create expense on credit card (debt increases)
+  - [ ] Create income on credit card (cashback/refund, debt decreases)
+- [ ] Test credit card transfers
+  - [ ] Bank → Credit Card bill payment (bank ↓, debt ↓)
+  - [ ] Credit Card → Bank refund (debt ↑, bank ↑)
+
+**Phase 3B: Dashboard Integration**
+- [ ] Update dashboard view (core/views.py)
+  - [ ] Keep Net Worth calculation for banks only (no debt subtraction)
+  - [ ] Update Total Accounts card to show "X Banks • Y Cards"
+  - [ ] Make Total Accounts card clickable (link to accounts page)
+  - [ ] Include credit card transactions in Recent Transactions section
+- [ ] Update dashboard template (templates/dashboard/dashboard.html)
+  - [ ] Update Total Accounts card display (show bank/card breakdown)
+  - [ ] Ensure recent transactions show credit card transactions
+  - [ ] Update "Add Account" button to show choice modal
+- [ ] Create account type choice modal
+  - [ ] Modal with two options: "Add Bank Account" and "Add Credit Card"
+  - [ ] Link to respective create forms
+  - [ ] Responsive design with icons
+
+**Phase 3C: Navigation & Combined Accounts Page**
+- [ ] Rename "Accounts" to "Accounts & Cards" in navigation
+  - [ ] Update header.html menu item
+  - [ ] Update sidebar.html menu item
+  - [ ] Update active state detection
+- [ ] Update account_list view (accounts/views.py)
+  - [ ] Query both BankAccount and CreditCard models
+  - [ ] Pass both querysets to template separately
+  - [ ] Calculate stats for both types
+- [ ] Update account_list template (templates/accounts/account_list.html)
+  - [ ] Add section headers: "Bank Accounts" and "Credit Cards"
+  - [ ] Display bank accounts in first section with 🏦 emoji
+  - [ ] Display credit cards in second section with 💳 emoji
+  - [ ] Show appropriate stats for each section
+  - [ ] Keep separate action buttons for each type
+  - [ ] Responsive grid layout for both sections
+- [ ] Update breadcrumbs/page titles throughout app
+
+**Phase 3D: Account Detail Page Enhancement**
+- [ ] Verify BankAccount detail page (accounts/account_detail.html)
+  - [ ] Ensure transfers to/from credit cards display correctly
+  - [ ] Test transaction tags with mixed account types
+  - [ ] Verify emoji indicators show in transaction history
+- [ ] Verify CreditCard detail page (creditcards/creditcard_detail.html)
+  - [ ] Already has transaction/transfer tabs
+  - [ ] Test with actual transactions from Phase 3A
+  - [ ] Ensure emoji indicators work
+- [ ] Add account type badges where needed
+
+**Phase 3E: Ledger Service Verification**
+- [ ] Test LedgerService.create_simple_entry() with CreditCard
+  - [ ] Expense on credit card (balance becomes more negative = debt increases)
+  - [ ] Income on credit card (cashback/refund = debt decreases)
+  - [ ] Verify CreditCardBalance updates correctly
+- [ ] Test LedgerService.create_transfer_entry() with credit cards
+  - [ ] Bank → Credit Card: bank ↓, credit card debt ↓ (less negative)
+  - [ ] Credit Card → Bank: credit card debt ↑ (more negative), bank ↑
+  - [ ] Credit Card → Credit Card: one debt ↓, other debt ↑
+- [ ] Verify LedgerService._update_account_balance() handles CreditCardBalance
+  - [ ] Atomic updates with select_for_update()
+  - [ ] Correct balance calculations
+- [ ] Test edge cases
+  - [ ] Credit card with positive balance (overpayment)
+  - [ ] Large payment reducing debt to zero
+  - [ ] Payment exceeding debt (creating positive balance)
+
+**Phase 3F: Comprehensive Testing**
+- [ ] Transaction Tests
+  - [ ] Create expense transaction on credit card
+  - [ ] Verify CreditCardBalance becomes more negative
+  - [ ] Verify available_credit() decreases
+  - [ ] Verify amount_owed() increases
+  - [ ] Create income transaction (refund) on credit card
+  - [ ] Verify debt decreases
+- [ ] Transfer Tests
+  - [ ] Bank → Credit Card (₹10,000 bill payment)
+    - [ ] Bank balance decreases by ₹10,000
+    - [ ] Credit card debt decreases by ₹10,000 (less negative)
+    - [ ] Available credit increases by ₹10,000
+  - [ ] Credit Card → Bank (₹5,000 refund)
+    - [ ] Credit card debt increases by ₹5,000 (more negative)
+    - [ ] Bank balance increases by ₹5,000
+  - [ ] Credit Card → Credit Card (balance transfer)
+    - [ ] Both balances update correctly
+- [ ] Dashboard Tests
+  - [ ] Verify Net Worth excludes credit card debt
+  - [ ] Verify Total Accounts shows "X Banks • Y Cards"
+  - [ ] Verify recent transactions include credit card transactions
+  - [ ] Test account type choice modal
+- [ ] Combined Accounts Page Tests
+  - [ ] Both sections display correctly
+  - [ ] Stats calculated correctly for each type
+  - [ ] Emoji indicators show properly
+  - [ ] Responsive design works on mobile
+- [ ] Deletion Tests
+  - [ ] Try deleting credit card with transactions (should fail)
+  - [ ] Verify ProtectedError shows friendly message
+- [ ] Edge Cases
+  - [ ] Credit card with positive balance (overpayment)
+  - [ ] Multiple cards with mixed balances
+  - [ ] Decimal precision (2 decimal places)
+  - [ ] Large numbers formatting
+
+**Phase 3G: Documentation & Cleanup**
+- [ ] Update FDD (docs/fdd/v1.md)
+  - [ ] Document credit card integration
+  - [ ] Update account selection specifications
+  - [ ] Document emoji indicators
+  - [ ] Update navigation structure
+- [ ] Update SDD (docs/sdd/v1.md)
+  - [ ] Update ERD with credit card relationships
+  - [ ] Document GenericForeignKey usage with multiple account types
+  - [ ] Update data flow diagrams
+- [ ] Update TODO.md
+  - [ ] Mark all Phase 3A-3G tasks as completed
+  - [ ] Update "In Progress" section
+- [ ] Update README.md
+  - [ ] Add Credit Cards feature section
+  - [ ] Document account types
+  - [ ] Add usage examples
+- [ ] Code cleanup
+  - [ ] Add/update docstrings for new functions
+  - [ ] Remove any debug code
+  - [ ] Ensure consistent code formatting
+  - [ ] Add inline comments for complex logic
+
+---
+
 ### 4️⃣ Investments - MEDIUM PRIORITY
 **Models First:**
 - [ ] Investment model (stock/mutual fund details)
@@ -505,4 +700,4 @@
 - [ ] Telegram/Email notifications
 
 ---
-**Last Updated:** 23 November 2025
+**Last Updated:** 24 November 2025

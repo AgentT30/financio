@@ -4,6 +4,7 @@ from django.utils import timezone
 from .models import Transaction
 from categories.models import Category
 from accounts.models import BankAccount
+from core.utils import get_account_choices_for_form, get_account_from_compound_value
 
 
 class CategorySelectWidget(forms.Select):
@@ -90,14 +91,18 @@ class TransactionForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Add custom account field
-        self.fields['account'] = forms.ModelChoiceField(
-            queryset=BankAccount.objects.filter(user=self.user, status='active') if self.user else BankAccount.objects.none(),
+        # Add custom account field with emoji indicators
+        account_choices = [('', 'Choose an account')]  # Empty choice first
+        if self.user:
+            account_choices.extend(get_account_choices_for_form(self.user))
+        
+        self.fields['account'] = forms.ChoiceField(
+            choices=account_choices,
             widget=forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
-            help_text="Select account",
-            empty_label="Choose an account"
+            help_text="Select bank account or credit card",
+            required=True
         )
         
         # Filter categories by user and add data-type attribute
@@ -127,9 +132,25 @@ class TransactionForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['date'].initial = self.instance.datetime_ist.date()
             self.fields['time'].initial = self.instance.datetime_ist.time()
-            # Set account field for editing
-            if self.instance.account:
-                self.fields['account'].initial = self.instance.account
+            # Set account field for editing - need to reconstruct compound value
+            if self.instance.account_object_id and self.instance.account_content_type:
+                model_name = self.instance.account_content_type.model
+                compound_value = f"{self.instance.account_object_id}|{model_name}"
+                self.fields['account'].initial = compound_value
+    
+    def clean_account(self):
+        """Extract actual account object from compound value."""
+        account_value = self.cleaned_data.get('account')
+        
+        if not account_value:
+            raise ValidationError("Please select an account")
+        
+        try:
+            # Use helper function to get actual account object
+            account = get_account_from_compound_value(account_value, self.user)
+            return account
+        except ValueError as e:
+            raise ValidationError(str(e))
     
     def clean(self):
         cleaned_data = super().clean()

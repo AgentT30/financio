@@ -55,3 +55,20 @@ def is_outgoing_transfer(transfer, account):
                 transfer.from_account_object_id == account.id)
     except Exception:
         return False
+
+
+@register.filter
+def ordinal(value):
+    """Convert an integer to its ordinal string representation (e.g., 1 -> '1st', 2 -> '2nd')."""
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return value
+    
+    # Special cases for 11, 12, 13
+    if 10 <= value % 100 <= 13:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(value % 10, 'th')
+    
+    return f"{value}{suffix}"

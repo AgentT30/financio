@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     
     # Financial domain apps
     'accounts',
+    'creditcards',
     'transactions',
     'ledger',
     'transfers',

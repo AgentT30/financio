@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from .models import Transfer
 from accounts.models import BankAccount
+from core.utils import get_account_choices_for_form, get_account_from_compound_value
 
 
 class TransferForm(forms.Form):
@@ -61,24 +62,56 @@ class TransferForm(forms.Form):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Add account selection fields
-        self.fields['from_account'] = forms.ModelChoiceField(
-            queryset=BankAccount.objects.filter(user=self.user, status='active') if self.user else BankAccount.objects.none(),
+        # Get account choices with emoji indicators
+        account_choices = [('', 'Choose an account')]  # Empty choice first
+        if self.user:
+            account_choices.extend(get_account_choices_for_form(self.user))
+        
+        # Add from_account field with unified dropdown
+        self.fields['from_account'] = forms.ChoiceField(
+            choices=account_choices,
             widget=forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
-            help_text="Select source account",
-            empty_label="Choose source account"
+            help_text="Select source account (bank or credit card)",
+            required=True
         )
         
-        self.fields['to_account'] = forms.ModelChoiceField(
-            queryset=BankAccount.objects.filter(user=self.user, status='active') if self.user else BankAccount.objects.none(),
+        # Add to_account field with unified dropdown
+        self.fields['to_account'] = forms.ChoiceField(
+            choices=account_choices,
             widget=forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
-            help_text="Select destination account",
-            empty_label="Choose destination account"
+            help_text="Select destination account (bank or credit card)",
+            required=True
         )
+    
+    def clean_from_account(self):
+        """Extract actual account object from compound value for from_account."""
+        account_value = self.cleaned_data.get('from_account')
+        
+        if not account_value:
+            raise ValidationError("Please select a source account")
+        
+        try:
+            account = get_account_from_compound_value(account_value, self.user)
+            return account
+        except ValueError as e:
+            raise ValidationError(str(e))
+    
+    def clean_to_account(self):
+        """Extract actual account object from compound value for to_account."""
+        account_value = self.cleaned_data.get('to_account')
+        
+        if not account_value:
+            raise ValidationError("Please select a destination account")
+        
+        try:
+            account = get_account_from_compound_value(account_value, self.user)
+            return account
+        except ValueError as e:
+            raise ValidationError(str(e))
     
     def clean(self):
         cleaned_data = super().clean()

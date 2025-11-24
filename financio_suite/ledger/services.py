@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from .models import JournalEntry, Posting, ControlAccount
 from accounts.models import BankAccountBalance
+from creditcards.models import CreditCardBalance
 
 
 class LedgerService:
@@ -272,18 +273,19 @@ class LedgerService:
     def _update_account_balance(account, delta, posting_id):
         """
         Update account balance atomically.
+        Supports both BankAccount and CreditCard account types.
         
         Args:
-            account: Account instance (BankAccount, etc.)
+            account: Account instance (BankAccount or CreditCard)
             delta: Decimal amount to add/subtract
             posting_id: ID of posting that caused this update
         
         Returns:
             Decimal: New balance amount
         """
-        # Currently only supports BankAccount
-        # Will extend for other account types when implemented
-        if account.__class__.__name__ == 'BankAccount':
+        account_type = account.__class__.__name__
+        
+        if account_type == 'BankAccount':
             balance, created = BankAccountBalance.objects.select_for_update().get_or_create(
                 account=account,
                 defaults={'balance_amount': account.opening_balance}
@@ -294,7 +296,20 @@ class LedgerService:
             balance.save(update_fields=['balance_amount', 'last_posting_id', 'updated_at'])
             
             return balance.balance_amount
+            
+        elif account_type == 'CreditCard':
+            balance, created = CreditCardBalance.objects.select_for_update().get_or_create(
+                account=account,
+                defaults={'balance_amount': account.opening_balance}
+            )
+            
+            balance.balance_amount += delta
+            balance.last_posting_id = posting_id
+            balance.save(update_fields=['balance_amount', 'last_posting_id', 'updated_at'])
+            
+            return balance.balance_amount
+            
         else:
             raise NotImplementedError(
-                f"Balance updates not implemented for {account.__class__.__name__}"
+                f"Balance updates not implemented for {account_type}"
             )

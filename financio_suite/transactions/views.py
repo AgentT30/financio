@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction as db_transaction
@@ -286,61 +286,86 @@ def transaction_edit(request, pk):
         
         if form.is_valid():
             try:
-                # Track changes
-                changes = track_model_changes(
-                    old_instance=old_transaction,
-                    new_instance=form.instance,
-                    fields_to_track=[
-                        'datetime_ist', 'transaction_type', 'amount',
-                        'category', 'method_type', 'purpose'
-                    ]
-                )
-                
-                # Update transaction instance
-                updated_transaction = form.save(commit=False)
-                
-                # Get the account from form
-                account = form.cleaned_data.get('account')
-                if account:
-                    from django.contrib.contenttypes.models import ContentType
-                    updated_transaction.content_type = ContentType.objects.get_for_model(account)
-                    updated_transaction.object_id = account.id
-                
-                # Update journal entry details
-                if updated_transaction.journal_entry:
-                    journal_entry = updated_transaction.journal_entry
-                    journal_entry.occurred_at = updated_transaction.datetime_ist
-                    journal_entry.memo = f"{updated_transaction.get_transaction_type_display()}: {updated_transaction.purpose[:100]}"
-                    journal_entry.save()
-                    
-                    # If amount or type changed, need to update postings
-                    if 'amount' in changes or 'transaction_type' in changes:
-                        # Delete old postings
-                        journal_entry.postings.all().delete()
-                        
-                        # Create new postings using LedgerService
-                        ledger_service = LedgerService()
-                        ledger_service._create_postings_for_simple_entry(
-                            journal_entry=journal_entry,
-                            transaction_type=updated_transaction.transaction_type,
-                            account=account,
-                            amount=updated_transaction.amount
-                        )
-                        
-                        # Update account balance
-                        ledger_service._update_account_balance(account)
-                
-                updated_transaction.save()
-                
-                # Log activity
-                if changes:
-                    log_activity(
-                        user=request.user,
-                        action='update',
-                        obj=updated_transaction,
-                        changes=changes,
-                        request=request
+                with db_transaction.atomic():
+                    # Track changes
+                    changes = track_model_changes(
+                        old_instance=old_transaction,
+                        new_instance=form.instance,
+                        fields_to_track=[
+                            'datetime_ist', 'transaction_type', 'amount',
+                            'category', 'method_type', 'purpose'
+                        ]
                     )
+                    
+                    # Update transaction instance
+                    updated_transaction = form.save(commit=False)
+                    
+                    # Get the account from form
+                    account = form.cleaned_data.get('account')
+                    if account:
+                        from django.contrib.contenttypes.models import ContentType
+                        updated_transaction.account_content_type = ContentType.objects.get_for_model(account)
+                        updated_transaction.account_object_id = account.id
+                    
+                    # For transaction edits, reverse old entry and create new one
+                    ledger_service = LedgerService()
+                    
+                    # Store the old account for reversal (might be different from new account)
+                    old_account = old_transaction.account if old_transaction.account else None
+                    
+                    # Delete old journal entry and reverse balances
+                    if updated_transaction.journal_entry:
+                        old_journal = updated_transaction.journal_entry
+                        
+                        # Find the posting that affected the user's account (not ControlAccount)
+                        old_user_posting = None
+                        for posting in old_journal.postings.all():
+                            if posting.account:
+                                account_type = posting.account.__class__.__name__
+                                if account_type in ['BankAccount', 'CreditCard']:
+                                    old_user_posting = posting
+                                    break
+                        
+                        # Reverse the old posting's effect on account balance
+                        if old_user_posting and old_account:
+                            account_type = old_account.__class__.__name__
+                            if account_type in ['BankAccount', 'CreditCard']:
+                                # Reverse by applying negative of the posting amount
+                                ledger_service._update_account_balance(
+                                    account=old_account,
+                                    delta=-old_user_posting.amount,
+                                    posting_id=old_user_posting.id
+                                )
+                        
+                        # Unlink transaction from journal entry before deleting
+                        updated_transaction.journal_entry = None
+                        updated_transaction.save()
+                        # Delete the old journal entry (cascades to postings)
+                        old_journal.delete()
+                    
+                    # Create new journal entry with updated values
+                    new_journal_entry = ledger_service.create_simple_entry(
+                        user=request.user,
+                        transaction_type=updated_transaction.transaction_type,
+                        account=account,
+                        amount=updated_transaction.amount,
+                        occurred_at=updated_transaction.datetime_ist,
+                        memo=f"{updated_transaction.get_transaction_type_display()}: {updated_transaction.purpose[:100]}"
+                    )
+                    
+                    # Link transaction to new journal entry
+                    updated_transaction.journal_entry = new_journal_entry
+                    updated_transaction.save()
+                    
+                    # Log activity
+                    if changes:
+                        log_activity(
+                            user=request.user,
+                            action='update',
+                            obj=updated_transaction,
+                            changes=changes,
+                            request=request
+                        )
                 
                 messages.success(request, 'Transaction updated successfully!')
                 return redirect('transactions:transaction_list')
@@ -353,13 +378,8 @@ def transaction_edit(request, pk):
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
-        # Pre-populate form with existing data
-        initial_data = {
-            'date': transaction.datetime_ist.date(),
-            'time': transaction.datetime_ist.time(),
-            'account': transaction.account,
-        }
-        form = TransactionForm(instance=transaction, user=request.user, initial=initial_data)
+        # Form will automatically populate account field from instance
+        form = TransactionForm(instance=transaction, user=request.user)
     
     context = {
         'form': form,
