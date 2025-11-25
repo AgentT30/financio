@@ -4,7 +4,7 @@ from ledger.models import ControlAccount
 
 class Command(BaseCommand):
     help = 'Create the two required control accounts for double-entry bookkeeping'
-    
+
     def handle(self, *args, **options):
         # Create Income Control Account
         income_control, created = ControlAccount.objects.get_or_create(
@@ -18,7 +18,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Created: {income_control.name}'))
         else:
             self.stdout.write(self.style.WARNING(f'Already exists: {income_control.name}'))
-        
+
         # Create Expense Control Account
         expense_control, created = ControlAccount.objects.get_or_create(
             account_type='expense',
@@ -31,5 +31,5 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Created: {expense_control.name}'))
         else:
             self.stdout.write(self.style.WARNING(f'Already exists: {expense_control.name}'))
-        
+
         self.stdout.write(self.style.SUCCESS('\n✅ Control accounts ready!'))

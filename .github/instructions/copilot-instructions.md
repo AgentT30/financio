@@ -61,3 +61,4 @@ Development workflow:
 - Always update the schema.sql file with the latest database schema changes.
 - For any database changes that need to be done, add the queries in the patch.sql file.
 - Do not run any commands, give me the commands and I will run them.
+- After each step, let me know what the next step is.

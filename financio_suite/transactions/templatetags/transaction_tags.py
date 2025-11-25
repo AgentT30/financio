@@ -13,7 +13,7 @@ def get_account(transaction):
                 pk=transaction.account_object_id
             )
             account_name = account.name if hasattr(account, 'name') else str(account)
-            
+
             # Add emoji indicator based on account type
             account_type = account.__class__.__name__
             if account_type == 'BankAccount':
@@ -22,7 +22,7 @@ def get_account(transaction):
                 emoji = '💳'
             else:
                 emoji = ''
-            
+
             return f"{emoji} {account_name}" if emoji else account_name
         except Exception:
             return "Unknown"
@@ -38,7 +38,7 @@ def get_transfer_from_account(transfer):
                 pk=transfer.from_account_object_id
             )
             account_name = account.name if hasattr(account, 'name') else str(account)
-            
+
             # Add emoji indicator based on account type
             account_type = account.__class__.__name__
             if account_type == 'BankAccount':
@@ -47,7 +47,7 @@ def get_transfer_from_account(transfer):
                 emoji = '💳'
             else:
                 emoji = ''
-            
+
             return f"{emoji} {account_name}" if emoji else account_name
         except Exception:
             return "Unknown"
@@ -63,7 +63,7 @@ def get_transfer_to_account(transfer):
                 pk=transfer.to_account_object_id
             )
             account_name = account.name if hasattr(account, 'name') else str(account)
-            
+
             # Add emoji indicator based on account type
             account_type = account.__class__.__name__
             if account_type == 'BankAccount':
@@ -72,7 +72,7 @@ def get_transfer_to_account(transfer):
                 emoji = '💳'
             else:
                 emoji = ''
-            
+
             return f"{emoji} {account_name}" if emoji else account_name
         except Exception:
             return "Unknown"
@@ -84,7 +84,7 @@ def is_outgoing_transfer(transfer, account):
     """Check if a transfer is outgoing from the given account."""
     try:
         account_content_type = ContentType.objects.get_for_model(account)
-        return (transfer.from_account_content_type.id == account_content_type.id and 
+        return (transfer.from_account_content_type.id == account_content_type.id and
                 transfer.from_account_object_id == account.id)
     except Exception:
         return False
@@ -97,11 +97,11 @@ def ordinal(value):
         value = int(value)
     except (TypeError, ValueError):
         return value
-    
+
     # Special cases for 11, 12, 13
     if 10 <= value % 100 <= 13:
         suffix = 'th'
     else:
         suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(value % 10, 'th')
-    
+
     return f"{value}{suffix}"

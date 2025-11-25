@@ -5,7 +5,7 @@ from .models import BankAccount
 
 class BankAccountForm(forms.ModelForm):
     """Form for creating and editing bank accounts."""
-    
+
     class Meta:
         model = BankAccount
         fields = [
@@ -68,10 +68,10 @@ class BankAccountForm(forms.ModelForm):
                 'class': 'h-14 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Make optional fields clear
         self.fields['institution'].required = False
         self.fields['branch_name'].required = False
@@ -82,7 +82,7 @@ class BankAccountForm(forms.ModelForm):
         self.fields['notes'].required = False
         self.fields['picture'].required = False
         self.fields['color'].required = False
-    
+
     def clean_ifsc_code(self):
         """Validate and uppercase IFSC code"""
         ifsc = self.cleaned_data.get('ifsc_code')

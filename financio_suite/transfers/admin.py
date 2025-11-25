@@ -5,7 +5,7 @@ from .models import Transfer
 @admin.register(Transfer)
 class TransferAdmin(admin.ModelAdmin):
     """Admin interface for Transfer model."""
-    
+
     list_display = [
         'id',
         'user',
@@ -17,28 +17,28 @@ class TransferAdmin(admin.ModelAdmin):
         'created_at',
         'is_deleted',
     ]
-    
+
     list_filter = [
         'method_type',
         'datetime_ist',
         'created_at',
         'deleted_at',
     ]
-    
+
     search_fields = [
         'memo',
         'user__username',
         'user__email',
     ]
-    
+
     readonly_fields = [
         'created_at',
         'updated_at',
         'journal_entry',
     ]
-    
+
     date_hierarchy = 'datetime_ist'
-    
+
     fieldsets = (
         ('Transfer Information', {
             'fields': (
@@ -74,17 +74,17 @@ class TransferAdmin(admin.ModelAdmin):
             )
         }),
     )
-    
+
     def from_account_display(self, obj):
         """Display from account name."""
         return str(obj.from_account) if obj.from_account else '-'
     from_account_display.short_description = 'From Account'
-    
+
     def to_account_display(self, obj):
         """Display to account name."""
         return str(obj.to_account) if obj.to_account else '-'
     to_account_display.short_description = 'To Account'
-    
+
     def is_deleted(self, obj):
         """Check if transfer is soft deleted."""
         return obj.is_deleted()

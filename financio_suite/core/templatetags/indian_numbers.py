@@ -11,11 +11,11 @@ register = template.Library()
 def indian_format(value, decimals=2):
     """
     Format a number using Indian numbering system (X,XX,XXX).
-    
+
     Args:
         value: Number to format
         decimals: Number of decimal places (default 2, use 0 for no decimals)
-    
+
     Examples:
         1000 -> 1,000.00
         10000 -> 10,000.00
@@ -24,11 +24,11 @@ def indian_format(value, decimals=2):
     """
     if value is None:
         return ''
-    
+
     try:
         # Convert decimals to int
         decimals = int(decimals) if decimals is not None else 2
-        
+
         # Convert to string and handle decimals
         if isinstance(value, (int, float, Decimal)):
             # Round to specified decimal places
@@ -50,17 +50,17 @@ def indian_format(value, decimals=2):
         else:
             str_value = str(value)
             dec_part = None
-        
+
         int_part = str_value
-        
+
         # Remove any existing commas
         int_part = int_part.replace(',', '')
-        
+
         # Handle negative numbers
         is_negative = int_part.startswith('-')
         if is_negative:
             int_part = int_part[1:]
-        
+
         # Format using Indian numbering system
         if len(int_part) <= 3:
             formatted = int_part
@@ -68,7 +68,7 @@ def indian_format(value, decimals=2):
             # Last 3 digits
             last_three = int_part[-3:]
             remaining = int_part[:-3]
-            
+
             # Add commas every 2 digits from right to left
             groups = []
             while remaining:
@@ -78,20 +78,20 @@ def indian_format(value, decimals=2):
                 else:
                     groups.append(remaining[-2:])
                     remaining = remaining[:-2]
-            
+
             # Reverse and join
             groups.reverse()
             formatted = ','.join(groups) + ',' + last_three
-        
+
         # Add negative sign back if needed
         if is_negative:
             formatted = '-' + formatted
-        
+
         # Add decimal part if specified
         if dec_part is not None and decimals > 0:
             return f"{formatted}.{dec_part}"
         else:
             return formatted
-    
+
     except (ValueError, TypeError):
         return value

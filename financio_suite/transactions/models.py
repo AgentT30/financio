@@ -12,12 +12,12 @@ class Transaction(models.Model):
     User-facing transaction model for income/expense tracking.
     Each transaction links to a JournalEntry in the ledger.
     """
-    
+
     TRANSACTION_TYPE_CHOICES = [
         ('income', 'Income'),
         ('expense', 'Expense'),
     ]
-    
+
     METHOD_TYPE_CHOICES = [
         ('upi', 'UPI'),
         ('card', 'Debit/Credit Card'),
@@ -28,7 +28,7 @@ class Transaction(models.Model):
         ('cheque', 'Cheque'),
         ('other', 'Other'),
     ]
-    
+
     # User who owns this transaction
     user = models.ForeignKey(
         User,
@@ -37,13 +37,13 @@ class Transaction(models.Model):
         db_index=True,
         help_text="Owner of the transaction"
     )
-    
+
     # When transaction occurred (IST)
     datetime_ist = models.DateTimeField(
         db_index=True,
         help_text="Date and time of transaction (IST)"
     )
-    
+
     # Transaction type (income or expense)
     transaction_type = models.CharField(
         max_length=20,
@@ -51,14 +51,14 @@ class Transaction(models.Model):
         db_index=True,
         help_text="Type of transaction"
     )
-    
+
     # Amount (always positive)
     amount = models.DecimalField(
         max_digits=18,
         decimal_places=2,
         help_text="Transaction amount (always positive)"
     )
-    
+
     # Account reference (GenericForeignKey)
     account_content_type = models.ForeignKey(
         ContentType,
@@ -69,7 +69,7 @@ class Transaction(models.Model):
         help_text="ID of the account"
     )
     account = GenericForeignKey('account_content_type', 'account_object_id')
-    
+
     # Payment method
     method_type = models.CharField(
         max_length=20,
@@ -77,12 +77,12 @@ class Transaction(models.Model):
         db_index=True,
         help_text="Payment method used"
     )
-    
+
     # Purpose/description
     purpose = models.TextField(
         help_text="Description or purpose of transaction"
     )
-    
+
     # Category
     category = models.ForeignKey(
         Category,
@@ -93,7 +93,7 @@ class Transaction(models.Model):
         blank=True,
         help_text="Transaction category (optional)"
     )
-    
+
     # Link to journal entry (one-to-one)
     journal_entry = models.OneToOneField(
         JournalEntry,
@@ -103,7 +103,7 @@ class Transaction(models.Model):
         blank=True,
         help_text="Linked journal entry in ledger"
     )
-    
+
     # Timestamps
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -113,7 +113,7 @@ class Transaction(models.Model):
         auto_now=True,
         help_text="Last update timestamp (IST)"
     )
-    
+
     # Soft delete
     deleted_at = models.DateTimeField(
         null=True,
@@ -121,7 +121,7 @@ class Transaction(models.Model):
         db_index=True,
         help_text="Soft delete timestamp"
     )
-    
+
     class Meta:
         db_table = 'transactions'
         verbose_name = 'Transaction'
@@ -133,16 +133,16 @@ class Transaction(models.Model):
             models.Index(fields=['category'], name='idx_txn_category'),
             models.Index(fields=['account_content_type', 'account_object_id'], name='idx_txn_account'),
         ]
-    
+
     def __str__(self):
         return f"{self.get_transaction_type_display()}: ₹{self.amount} - {self.purpose[:30]} ({self.datetime_ist.strftime('%Y-%m-%d')})"
-    
+
     def clean(self):
         """Validate transaction data"""
         # Validate amount is positive
         if self.amount is not None and self.amount <= 0:
             raise ValidationError({'amount': 'Amount must be greater than zero'})
-        
+
         # Validate category type matches transaction type
         if self.category:
             if self.transaction_type == 'income' and self.category.type != 'income':
@@ -153,30 +153,30 @@ class Transaction(models.Model):
                 raise ValidationError({
                     'category': 'Expense transaction must use an expense category'
                 })
-        
+
         # Validate account belongs to user (only if user is already set)
         if self.user_id and self.account and hasattr(self.account, 'user'):
             if self.account.user_id != self.user_id:
                 raise ValidationError({
                     'account': 'Account must belong to the transaction owner'
                 })
-    
+
     def save(self, skip_validation=False, *args, **kwargs):
         """Override save to run validation"""
         if not skip_validation:
             self.full_clean()
         super().save(*args, **kwargs)
-    
+
     def delete(self, using=None, keep_parents=False):
         """Soft delete by setting deleted_at"""
         from django.utils import timezone
         self.deleted_at = timezone.now()
         self.save(update_fields=['deleted_at'])
-    
+
     def hard_delete(self):
         """Actually delete from database (admin only)"""
         super().delete()
-    
+
     @property
     def is_deleted(self):
         """Check if transaction is soft-deleted"""

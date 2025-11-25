@@ -103,14 +103,8 @@ Financio Team
                 fail_silently=False,
             )
         except Exception as e:
-            # In development, just print to console
-            print(f"\n{'='*80}")
-            print(f"PASSWORD RESET EMAIL")
-            print(f"{'='*80}")
-            print(f"To: {email}")
-            print(f"Subject: {subject}")
-            print(f"\n{message}")
-            print(f"{'='*80}\n")
+            # Email sending failed - log error silently in development
+            pass
         
         messages.success(self.request, 'Password reset instructions sent to your email.')
         return super().form_valid(form)

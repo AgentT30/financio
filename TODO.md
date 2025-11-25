@@ -601,7 +601,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Fixed dashboard and account list balance calculations to use get_current_balance() method
   - [x] Handles missing balance records gracefully (falls back to opening_balance)
 
-**Phase 3G: Documentation & Cleanup** ✅ DOCUMENTATION COMPLETED | 🚧 CODE CLEANUP PENDING
+**Phase 3G: Documentation & Cleanup** ✅ COMPLETED
 - [x] Update FDD (docs/fdd/v1.md)
   - [x] Document credit card integration
   - [x] Update account selection specifications
@@ -624,11 +624,30 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Document account types
   - [x] Add usage examples
   - [x] Update feature list
-- [ ] Code cleanup
-  - [ ] Add/update docstrings for new functions
-  - [ ] Remove any debug code
-  - [ ] Ensure consistent code formatting
-  - [ ] Add inline comments for complex logic
+- [x] Code cleanup - Part 1: Docstrings
+  - [x] Add/update docstrings for core utilities (core/utils.py)
+  - [x] Add/update docstrings for ledger service (ledger/services.py)
+  - [x] Add/update docstrings for template filters (core/templatetags/indian_numbers.py)
+  - [x] Add/update docstrings for views (core/views.py, accounts/views.py)
+  - [x] Add/update docstrings for forms (transactions/forms.py, transfers/forms.py)
+  - [x] Add/update docstrings for models (accounts/models.py, creditcards/models.py)
+  - [x] Add/update docstrings for management commands (recalculate_balances.py)
+- [x] Code cleanup - Part 2: Debug code removal
+  - [x] Removed debug print statements from authn/views.py
+  - [x] Removed unused BankAccountBalance import from core/views.py
+  - [x] Verified no commented-out code blocks
+- [x] Code cleanup - Part 3: Code formatting
+  - [x] Removed trailing whitespace from all Python files in Phase 3 directories
+  - [x] Verified consistent import organization (PEP 8: stdlib, Django, third-party, local)
+  - [x] Verified consistent indentation (4 spaces)
+- [x] Code cleanup - Part 4: Inline comments
+  - [x] Added comments explaining compound value reconstruction in forms
+  - [x] Added comments for GenericFK comparison logic (same-account validation)
+  - [x] Added comments for balance validation differences (BankAccount vs CreditCard)
+  - [x] Added comments for double-entry reversal logic in transaction edits/deletes
+  - [x] Added comments for select_for_update() race condition prevention
+  - [x] Added comments for available credit calculation with examples
+  - [x] Added comments for opening balance sync conditions
 
 ---
 

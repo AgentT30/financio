@@ -8,12 +8,22 @@ from core.utils import get_account_choices_for_form, get_account_from_compound_v
 
 
 class CategorySelectWidget(forms.Select):
-    """Custom Select widget that adds data-type attribute to options."""
-    
+    """
+    Custom Select widget that adds data-type attribute to category options.
+
+    This widget enhances the standard Select widget by:
+    - Adding data-type="income" or data-type="expense" to each option
+    - Allowing JavaScript to filter categories based on transaction type
+    - Capitalizing category labels for better display
+
+    Attributes:
+        category_types (dict): Mapping of category IDs to their types (income/expense)
+    """
+
     def __init__(self, category_types=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.category_types = category_types or {}
-    
+
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         # Extract just the category name from "Type: name" format and capitalize it
         if label and isinstance(label, str) and ':' in label:
@@ -21,27 +31,47 @@ class CategorySelectWidget(forms.Select):
             label = label.split(':', 1)[1].strip().capitalize()
         elif label and isinstance(label, str):
             label = label.capitalize()
-        
+
         option = super().create_option(name, value, label, selected, index, subindex, attrs)
-        
+
         # Add data-type attribute to options (skip the empty option which has value='')
         if value:
             try:
                 # Extract the actual value - it might be a ModelChoiceIteratorValue object
                 actual_value = value.value if hasattr(value, 'value') else value
                 int_value = int(actual_value)
-                
+
                 if int_value in self.category_types:
                     option['attrs']['data-type'] = self.category_types[int_value]
             except (ValueError, TypeError, AttributeError):
                 pass
-        
+
         return option
 
 
 class TransactionForm(forms.ModelForm):
-    """Form for creating and editing transactions."""
-    
+    """
+    Form for creating and editing transactions.
+
+    Features:
+    - Unified account dropdown with emoji indicators (🏬 Bank, 💳 Credit Card)
+    - Dynamic category filtering based on transaction type (JavaScript)
+    - Date/time fields for IST datetime capture
+    - Insufficient balance validation for bank accounts (credit cards exempt)
+    - GenericForeignKey support for polymorphic account references
+
+    Account Selection:
+    - Uses compound value format: "id|modelname" (e.g., "1|bankaccount")
+    - Extracted to actual account object via get_account_from_compound_value()
+    - Supports BankAccount and CreditCard models
+
+    Validation:
+    - Bank accounts: Validates sufficient balance for expenses
+    - Credit cards: No balance validation (can go more negative)
+    - Category type must match transaction type (income/expense)
+    - Amount must be > 0
+    """
+
     # Custom fields for better UX
     date = forms.DateField(
         widget=forms.DateInput(attrs={
@@ -60,7 +90,7 @@ class TransactionForm(forms.ModelForm):
         initial=None,
         help_text="Transaction time (optional, defaults to current time if not provided)"
     )
-    
+
     class Meta:
         model = Transaction
         fields = ['transaction_type', 'amount', 'method_type', 'purpose', 'category']
@@ -86,16 +116,16 @@ class TransactionForm(forms.ModelForm):
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
+
         # Add custom account field with emoji indicators
         account_choices = [('', 'Choose an account')]  # Empty choice first
         if self.user:
             account_choices.extend(get_account_choices_for_form(self.user))
-        
+
         self.fields['account'] = forms.ChoiceField(
             choices=account_choices,
             widget=forms.Select(attrs={
@@ -104,7 +134,7 @@ class TransactionForm(forms.ModelForm):
             help_text="Select bank account or credit card",
             required=True
         )
-        
+
         # Filter categories by user and add data-type attribute
         if self.user:
             categories = Category.objects.filter(
@@ -112,10 +142,10 @@ class TransactionForm(forms.ModelForm):
                 is_active=True,
                 type__in=['income', 'expense']  # Only show income and expense categories
             ).order_by('type', 'name')
-            
+
             # Build category types mapping for custom widget
             category_types = {cat.id: cat.type for cat in categories}
-            
+
             # Replace widget with custom widget that includes data-type
             self.fields['category'].widget = CategorySelectWidget(
                 category_types=category_types,
@@ -123,35 +153,37 @@ class TransactionForm(forms.ModelForm):
                     'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
                 }
             )
-            
+
             # Now set the queryset and empty_label AFTER setting the widget
             self.fields['category'].queryset = categories
             self.fields['category'].empty_label = "Choose a category (optional)"
-        
+
         # Set initial date/time if editing
         if self.instance and self.instance.pk:
             self.fields['date'].initial = self.instance.datetime_ist.date()
             self.fields['time'].initial = self.instance.datetime_ist.time()
             # Set account field for editing - need to reconstruct compound value
+            # GenericFK stores separately: content_type + object_id
+            # Form needs: "id|modelname" format for the unified dropdown
             if self.instance.account_object_id and self.instance.account_content_type:
                 model_name = self.instance.account_content_type.model
                 compound_value = f"{self.instance.account_object_id}|{model_name}"
                 self.fields['account'].initial = compound_value
-    
+
     def clean_account(self):
         """Extract actual account object from compound value."""
         account_value = self.cleaned_data.get('account')
-        
+
         if not account_value:
             raise ValidationError("Please select an account")
-        
+
         try:
             # Use helper function to get actual account object
             account = get_account_from_compound_value(account_value, self.user)
             return account
         except ValueError as e:
             raise ValidationError(str(e))
-    
+
     def clean(self):
         cleaned_data = super().clean()
         date = cleaned_data.get('date')
@@ -159,43 +191,45 @@ class TransactionForm(forms.ModelForm):
         account = cleaned_data.get('account')
         transaction_type = cleaned_data.get('transaction_type')
         amount = cleaned_data.get('amount')
-        
+
         # Combine date and time
         if date:
             if time:
                 datetime_ist = timezone.datetime.combine(date, time)
             else:
                 datetime_ist = timezone.datetime.combine(date, timezone.now().time())
-            
+
             # Make timezone-aware (IST)
             datetime_ist = timezone.make_aware(datetime_ist, timezone.get_current_timezone())
             cleaned_data['datetime_ist'] = datetime_ist
-        
+
         # Set GenericFK fields from account
         if account:
             from django.contrib.contenttypes.models import ContentType
             cleaned_data['account_content_type'] = ContentType.objects.get_for_model(account)
             cleaned_data['account_object_id'] = account.pk
-        
+
         # Validate sufficient balance for expense transactions on bank accounts
         if account and transaction_type == 'expense' and amount:
             account_type = account.__class__.__name__
-            
+
             # Only check balance for BankAccount (credit cards can go more negative)
+            # Credit cards work differently: negative balance = debt, can exceed limit separately
+            # BankAccount: cannot spend more than you have (no overdraft)
             if account_type == 'BankAccount':
                 current_balance = account.get_current_balance()
-                
+
                 # Handle None balance (treat as 0)
                 if current_balance is None:
                     current_balance = 0
-                
+
                 if current_balance < amount:
                     # Add error to amount field specifically to avoid __all__ display
-                    self.add_error('amount', 
+                    self.add_error('amount',
                         f"Insufficient balance in {account.name}. "
                         f"Current balance: ₹{current_balance:,.2f}, "
                         f"Expense amount: ₹{amount:,.2f}. "
                         f"Please reduce the amount or use a different account."
                     )
-        
+
         return cleaned_data
