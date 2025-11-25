@@ -140,4 +140,20 @@ class TransferForm(forms.Form):
         if amount and amount <= 0:
             raise ValidationError("Transfer amount must be greater than zero")
         
+        # Validate sufficient balance for bank accounts
+        if from_account and amount:
+            from_account_type = from_account.__class__.__name__
+            
+            # Only check balance for BankAccount (credit cards can go more negative)
+            if from_account_type == 'BankAccount':
+                current_balance = from_account.get_current_balance()
+                
+                if current_balance < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in {from_account.name}. "
+                        f"Current balance: ₹{current_balance:,.2f}, "
+                        f"Transfer amount: ₹{amount:,.2f}. "
+                        f"Please reduce the transfer amount or add funds to the account."
+                    )
+        
         return cleaned_data

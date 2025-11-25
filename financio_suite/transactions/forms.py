@@ -157,6 +157,8 @@ class TransactionForm(forms.ModelForm):
         date = cleaned_data.get('date')
         time = cleaned_data.get('time')
         account = cleaned_data.get('account')
+        transaction_type = cleaned_data.get('transaction_type')
+        amount = cleaned_data.get('amount')
         
         # Combine date and time
         if date:
@@ -174,5 +176,21 @@ class TransactionForm(forms.ModelForm):
             from django.contrib.contenttypes.models import ContentType
             cleaned_data['account_content_type'] = ContentType.objects.get_for_model(account)
             cleaned_data['account_object_id'] = account.pk
+        
+        # Validate sufficient balance for expense transactions on bank accounts
+        if account and transaction_type == 'expense' and amount:
+            account_type = account.__class__.__name__
+            
+            # Only check balance for BankAccount (credit cards can go more negative)
+            if account_type == 'BankAccount':
+                current_balance = account.get_current_balance()
+                
+                if current_balance < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in {account.name}. "
+                        f"Current balance: ₹{current_balance:,.2f}, "
+                        f"Expense amount: ₹{amount:,.2f}. "
+                        f"Please reduce the amount or use a different account."
+                    )
         
         return cleaned_data

@@ -89,7 +89,9 @@ class Transaction(models.Model):
         on_delete=models.PROTECT,
         related_name='transactions',
         db_index=True,
-        help_text="Transaction category"
+        null=True,
+        blank=True,
+        help_text="Transaction category (optional)"
     )
     
     # Link to journal entry (one-to-one)

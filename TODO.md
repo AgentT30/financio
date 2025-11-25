@@ -520,33 +520,46 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Menu ID prefixes to avoid conflicts (menu-bank-, menu-card-)
   - [x] Credit card URLs use direct paths (/creditcards/...)
 
-**Phase 3D: Account Detail Page Enhancement** 🔜 NEXT
-- [ ] Verify BankAccount detail page (accounts/account_detail.html)
-  - [ ] Ensure transfers to/from credit cards display correctly
-  - [ ] Test transaction tags with mixed account types
-  - [ ] Verify emoji indicators show in transaction history
-- [ ] Verify CreditCard detail page (creditcards/creditcard_detail.html)
-  - [ ] Already has transaction/transfer tabs
-  - [ ] Test with actual transactions from Phase 3A
-  - [ ] Ensure emoji indicators work
-- [ ] Add account type badges where needed
+**Phase 3D: Account Detail Page Enhancement** ✅ COMPLETED
+- [x] Verify BankAccount detail page (accounts/account_detail.html)
+  - [x] Ensure transfers to/from credit cards display correctly (GenericForeignKey filtering works)
+  - [x] Test transaction tags with mixed account types (emoji indicators working via template tags)
+  - [x] Verify emoji indicators show in transaction history (🏦 for BankAccount, 💳 for CreditCard)
+- [x] Verify CreditCard detail page (creditcards/creditcard_detail.html)
+  - [x] Already has transaction/transfer tabs (confirmed working)
+  - [x] Test with actual transactions from Phase 3A (GenericForeignKey filtering works)
+  - [x] Ensure emoji indicators work (confirmed via template tags)
+- [x] Add account type badges where needed
+  - [x] Added 🏦 Bank Account badge to account_detail.html header
+  - [x] Added 💳 Credit Card badge to creditcard_detail.html header
+  - [x] Used consistent badge styling with blue for bank accounts, purple for credit cards
 
-**Phase 3E: Ledger Service Verification**
-- [ ] Test LedgerService.create_simple_entry() with CreditCard
-  - [ ] Expense on credit card (balance becomes more negative = debt increases)
-  - [ ] Income on credit card (cashback/refund = debt decreases)
-  - [ ] Verify CreditCardBalance updates correctly
-- [ ] Test LedgerService.create_transfer_entry() with credit cards
-  - [ ] Bank → Credit Card: bank ↓, credit card debt ↓ (less negative)
-  - [ ] Credit Card → Bank: credit card debt ↑ (more negative), bank ↑
-  - [ ] Credit Card → Credit Card: one debt ↓, other debt ↑
-- [ ] Verify LedgerService._update_account_balance() handles CreditCardBalance
-  - [ ] Atomic updates with select_for_update()
-  - [ ] Correct balance calculations
-- [ ] Test edge cases
-  - [ ] Credit card with positive balance (overpayment)
-  - [ ] Large payment reducing debt to zero
-  - [ ] Payment exceeding debt (creating positive balance)
+**Phase 3E: Ledger Service Verification** ✅ COMPLETED
+- [x] Create comprehensive test plan (PHASE_3E_TEST_PLAN.md)
+- [x] Test LedgerService.create_simple_entry() with CreditCard
+  - [x] Test 1.1: Expense on credit card (balance becomes more negative = debt increases)
+  - [x] Test 1.2: Income on credit card (cashback/refund = debt decreases)
+  - [x] Verify CreditCardBalance updates correctly
+- [x] Test LedgerService.create_transfer_entry() with credit cards
+  - [x] Test 2.1: Bank → Credit Card (bank ↓, credit card debt ↓ = less negative)
+  - [x] Test 2.2: Credit Card → Bank (credit card debt ↑ = more negative, bank ↑)
+  - [x] Test 2.3: Credit Card → Credit Card (one debt ↓, other debt ↑)
+- [x] Verify LedgerService._update_account_balance() handles CreditCardBalance
+  - [x] Test 3.1: Atomic updates with select_for_update() (race condition prevention)
+  - [x] Test 3.2: Correct balance type selection (BankAccountBalance vs CreditCardBalance)
+- [x] Test edge cases
+  - [x] Test 4.1: Credit card with positive balance (overpayment scenario)
+  - [x] **CRITICAL FIX**: Added insufficient balance validation for bank accounts
+    - [x] TransferForm: Validates bank account has sufficient balance before transfer
+    - [x] TransactionForm: Validates bank account has sufficient balance before expense
+    - [x] Credit cards exempt from validation (can go more negative)
+    - [x] User-friendly error messages with current balance and requested amount
+  - [x] Test 4.2: Large payment reducing debt to zero (exact payment)
+  - [x] Test 4.3: Multiple small transactions (decimal precision verification)
+  - [x] Test 4.4: Large numbers formatting (₹99,999.99 display)
+- [x] Test error handling
+  - [x] Test 5.1: Delete credit card with transactions (should fail gracefully)
+  - [x] Test 5.2: Invalid account type handling
 
 **Phase 3F: Comprehensive Testing**
 - [ ] Transaction Tests
@@ -716,6 +729,15 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Export all data
 - [ ] Backup functionality
 - [ ] Data cleanup utilities
+- [ ] **Balance Recalculation UI** (Admin/Settings page)
+  - [ ] Create admin/settings page for balance management
+  - [ ] Add "Recalculate Balances" button with confirmation modal
+  - [ ] Show dry-run preview before applying changes
+  - [ ] Display before/after balance comparison
+  - [ ] Option to cleanup orphaned journal entries
+  - [ ] Activity logging for balance recalculations
+  - [ ] Success/error feedback messages
+  - Note: Management command already exists at `ledger/management/commands/recalculate_balances.py`
 
 ### Mobile Responsiveness
 - [ ] Mobile-optimized navigation
