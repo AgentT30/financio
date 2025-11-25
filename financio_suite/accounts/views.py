@@ -28,9 +28,11 @@ def account_list(request):
     
     # Calculate bank account stats
     active_banks = bank_accounts.filter(status='active')
-    total_bank_balance = active_banks.aggregate(
-        total=Sum('balance__balance_amount')
-    )['total'] or Decimal('0.00')
+    # Use get_current_balance() to handle cases where balance record doesn't exist
+    total_bank_balance = sum(
+        account.get_current_balance()
+        for account in active_banks
+    )
     
     # Calculate credit card stats
     active_cards = credit_cards.filter(status='active')
@@ -80,7 +82,7 @@ def account_create(request):
                 balance_amount=account.opening_balance
             )
             
-            messages.success(request, f'Account "{account.name.title()}" created successfully!')
+            messages.success(request, f'Account "{account.name}" created successfully!')
             return redirect('account_list')
     else:
         form = BankAccountForm()
@@ -122,7 +124,7 @@ def account_edit(request, pk):
                         balance_amount=account.opening_balance
                     )
             
-            messages.success(request, f'Account "{account.name.title()}" updated successfully!')
+            messages.success(request, f'Account "{account.name}" updated successfully!')
             return redirect('account_list')
     else:
         form = BankAccountForm(instance=account)
@@ -190,16 +192,16 @@ def account_delete(request, pk):
         
         # Check if account can be deleted
         if not account.can_delete():
-            messages.error(request, f'Cannot delete "{name.title()}" because it has transactions or transfers.')
+            messages.error(request, f'Cannot delete "{name}" because it has transactions or transfers.')
             return redirect('account_list')
         
         try:
             # Delete the account (cascade will handle BankAccountBalance)
             account.delete()
-            messages.success(request, f'Account "{name.title()}" deleted successfully!')
+            messages.success(request, f'Account "{name}" deleted successfully!')
         except ProtectedError:
             # Catch ProtectedError if can_delete() check missed something
-            messages.error(request, f'Cannot delete "{name.title()}" because it has transactions or transfers.')
+            messages.error(request, f'Cannot delete "{name}" because it has transactions or transfers.')
         
         return redirect('account_list')
     
@@ -216,9 +218,9 @@ def account_toggle_status(request, pk):
     
     if account.status == 'active':
         account.archive()
-        messages.success(request, f'Account "{account.name.title()}" archived.')
+        messages.success(request, f'Account "{account.name}" archived.')
     else:
         account.activate()
-        messages.success(request, f'Account "{account.name.title()}" activated.')
+        messages.success(request, f'Account "{account.name}" activated.')
     
     return redirect('account_list')

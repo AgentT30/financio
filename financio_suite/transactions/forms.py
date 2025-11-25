@@ -185,8 +185,13 @@ class TransactionForm(forms.ModelForm):
             if account_type == 'BankAccount':
                 current_balance = account.get_current_balance()
                 
+                # Handle None balance (treat as 0)
+                if current_balance is None:
+                    current_balance = 0
+                
                 if current_balance < amount:
-                    raise ValidationError(
+                    # Add error to amount field specifically to avoid __all__ display
+                    self.add_error('amount', 
                         f"Insufficient balance in {account.name}. "
                         f"Current balance: ₹{current_balance:,.2f}, "
                         f"Expense amount: ₹{amount:,.2f}. "

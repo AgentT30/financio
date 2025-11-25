@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load transaction_tags %}
+{% load indian_numbers %}
 
 {% block title %}Dashboard - Financio{% endblock %}
 
@@ -126,7 +127,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a]">
                             <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Net Worth</p>
-                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">₹ {{ stats.net_worth|default:"0"|floatformat:0 }}</p>
+                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.net_worth|default:"0"|indian_format:0 }}</p>
                         </div>
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a] hover:bg-gray-200 dark:hover:bg-[#2f3548] transition-colors cursor-pointer" onclick="window.location.href='{% url 'account_list' %}'">
                             <div class="flex items-center justify-between">
@@ -145,11 +146,11 @@
                         </div>
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                             <p class="text-green-900 dark:text-green-300 text-sm md:text-base font-medium leading-normal">Income (MTD)</p>
-                            <p class="text-green-900 dark:text-green-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹ {{ stats.monthly_income|default:"0"|floatformat:0 }}</p>
+                            <p class="text-green-900 dark:text-green-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.monthly_income|default:"0"|indian_format:0 }}</p>
                         </div>
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                             <p class="text-red-900 dark:text-red-300 text-sm md:text-base font-medium leading-normal">Expense (MTD)</p>
-                            <p class="text-red-900 dark:text-red-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹ {{ stats.monthly_expense|default:"0"|floatformat:0 }}</p>
+                            <p class="text-red-900 dark:text-red-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.monthly_expense|default:"0"|indian_format:0 }}</p>
                         </div>
                     </div>
                     
@@ -196,9 +197,9 @@
                                             </td>
                                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                                 {% if transaction.transaction_type == 'income' %}
-                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹ {{ transaction.amount|floatformat:0 }}</span>
+                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
                                                 {% else %}
-                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹ {{ transaction.amount|floatformat:0 }}</span>
+                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -232,9 +233,9 @@
                                         </div>
                                         <div class="ml-2 flex-shrink-0">
                                             {% if transaction.transaction_type == 'income' %}
-                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
                                             {% else %}
-                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
                                             {% endif %}
                                         </div>
                                     </div>

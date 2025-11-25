@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load transaction_tags %}
+{% load indian_numbers %}
 
 {% block title %}{{ account.name }} - Financio{% endblock %}
 
@@ -58,13 +59,13 @@
                     <!-- Balance Card -->
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                         <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Current Balance</h2>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|floatformat:2 }}</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|indian_format }}</p>
                     </div>
 
                     <!-- Opening Balance Card -->
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                         <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Opening Balance</h2>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.opening_balance|floatformat:2 }}</p>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.opening_balance|indian_format }}</p>
                     </div>
                 </div>
 
@@ -198,9 +199,9 @@
                                             </td>
                                             <td class="px-6 py-4 text-right whitespace-nowrap">
                                                 {% if transaction.transaction_type == 'income' %}
-                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|floatformat:0 }}</span>
+                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
                                                 {% else %}
-                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|floatformat:0 }}</span>
+                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -232,9 +233,9 @@
                                         </div>
                                         <div class="ml-2 flex-shrink-0">
                                             {% if transaction.transaction_type == 'income' %}
-                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
                                             {% else %}
-                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -369,9 +370,9 @@
                                         </div>
                                         <div class="ml-2 flex-shrink-0">
                                             {% if transfer|is_outgoing_transfer:account %}
-                                                <span class="text-base font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|indian_format }}</span>
                                             {% else %}
-                                                <span class="text-base font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|floatformat:0 }}</span>
+                                                <span class="text-base font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|indian_format }}</span>
                                             {% endif %}
                                         </div>
                                     </div>

@@ -151,7 +151,10 @@ class LedgerService:
         if amount <= 0:
             raise ValidationError("Transfer amount must be greater than zero")
         
-        if from_account.pk == to_account.pk:
+        # Check if transferring to the same account (same type AND same ID)
+        from_ct = ContentType.objects.get_for_model(from_account)
+        to_ct = ContentType.objects.get_for_model(to_account)
+        if from_ct.id == to_ct.id and from_account.pk == to_account.pk:
             raise ValidationError("Cannot transfer to the same account")
         
         # Create journal entry

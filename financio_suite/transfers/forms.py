@@ -133,8 +133,15 @@ class TransferForm(forms.Form):
             cleaned_data['datetime_ist'] = datetime_ist
         
         # Validate from_account and to_account are different
-        if from_account and to_account and from_account == to_account:
-            raise ValidationError("Source and destination accounts must be different")
+        # This validation is also in the model, but we check here for better UX
+        if from_account and to_account:
+            from django.contrib.contenttypes.models import ContentType
+            from_ct = ContentType.objects.get_for_model(from_account)
+            to_ct = ContentType.objects.get_for_model(to_account)
+            
+            # Same account only if BOTH content type AND object ID match
+            if from_ct.id == to_ct.id and from_account.id == to_account.id:
+                raise ValidationError("Source and destination accounts must be different")
         
         # Validate amount is positive
         if amount and amount <= 0:

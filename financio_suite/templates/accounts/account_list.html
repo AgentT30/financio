@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load indian_numbers %}
 
 {% block title %}Accounts - Financio{% endblock %}
 
@@ -33,7 +34,7 @@
                                 <span>Bank Accounts</span>
                             </h2>
                             <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                                {{ active_banks_count }} active • {{ archived_banks_count }} archived • ₹{{ total_bank_balance|floatformat:2 }} total
+                                {{ active_banks_count }} active • {{ archived_banks_count }} archived • ₹{{ total_bank_balance|indian_format }} total
                             </p>
                         </div>
                         <a href="{% url 'account_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
@@ -102,7 +103,7 @@
                                 <!-- Balance -->
                                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
                                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Current Balance</p>
-                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|floatformat:2 }}</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|indian_format }}</p>
                                 </div>
 
                                 <!-- Status Badge -->
@@ -156,17 +157,17 @@
                             <!-- Total Credit Limit -->
                             <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Credit Limit</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ total_credit_limit|floatformat:2 }}</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ total_credit_limit|indian_format }}</p>
                             </div>
                             <!-- Available Credit -->
                             <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Available Credit</p>
-                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">₹{{ total_available_credit|floatformat:2 }}</p>
+                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">₹{{ total_available_credit|indian_format }}</p>
                             </div>
                             <!-- Amount Owed -->
                             <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Amount Owed</p>
-                                <p class="text-2xl font-bold text-red-600 dark:text-red-400">₹{{ total_amount_owed|floatformat:2 }}</p>
+                                <p class="text-2xl font-bold text-red-600 dark:text-red-400">₹{{ total_amount_owed|indian_format }}</p>
                             </div>
                         </div>
                     {% endif %}
@@ -230,15 +231,15 @@
                                 <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
                                     <div class="flex justify-between items-center">
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Credit Limit</p>
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">₹{{ card.credit_limit|floatformat:2 }}</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">₹{{ card.credit_limit|indian_format }}</p>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Available</p>
-                                        <p class="text-sm font-semibold text-green-600 dark:text-green-400">₹{{ card.available_credit|floatformat:2 }}</p>
+                                        <p class="text-sm font-semibold text-green-600 dark:text-green-400">₹{{ card.available_credit|indian_format }}</p>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <p class="text-xs text-gray-500 dark:text-gray-400">Amount Owed</p>
-                                        <p class="text-sm font-semibold text-red-600 dark:text-red-400">₹{{ card.amount_owed|floatformat:2 }}</p>
+                                        <p class="text-sm font-semibold text-red-600 dark:text-red-400">₹{{ card.amount_owed|indian_format }}</p>
                                     </div>
                                 </div>
 

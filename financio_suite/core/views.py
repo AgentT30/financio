@@ -20,12 +20,11 @@ def dashboard(request):
     
     # Calculate Net Worth (Bank balances only - excludes credit card debt)
     # Per user specification: Net Worth = Bank balances + Investments (no debt subtraction)
-    net_worth = BankAccountBalance.objects.filter(
-        account__user=request.user,
-        account__status='active'
-    ).aggregate(
-        total=Sum('balance_amount')
-    )['total'] or 0
+    # Use get_current_balance() to handle cases where balance record doesn't exist
+    net_worth = sum(
+        account.get_current_balance() 
+        for account in BankAccount.objects.filter(user=request.user, status='active')
+    )
     
     # Get first day of current month for MTD calculations
     now = timezone.now()

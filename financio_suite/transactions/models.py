@@ -140,7 +140,7 @@ class Transaction(models.Model):
     def clean(self):
         """Validate transaction data"""
         # Validate amount is positive
-        if self.amount <= 0:
+        if self.amount is not None and self.amount <= 0:
             raise ValidationError({'amount': 'Amount must be greater than zero'})
         
         # Validate category type matches transaction type

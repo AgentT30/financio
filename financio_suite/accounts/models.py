@@ -96,11 +96,7 @@ class BankAccount(BaseAccount):
                 })
     
     def save(self, *args, **kwargs):
-        """Override save to auto-extract last 4 digits and run validation and normalize storage"""
-        # Store name and institution in title case for consistency
-        if self.institution:
-            self.institution = self.institution.title()
-        
+        """Override save to auto-extract last 4 digits and run validation and normalize storage"""        
         # Auto-extract last 4 digits from account number
         if self.account_number:
             # Remove any spaces or dashes

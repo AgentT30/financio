@@ -1,6 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% load transaction_tags %}
+{% load indian_numbers %}
 
 {% block title %}{{ creditcard.name }} - Financio{% endblock %}
 
@@ -55,15 +56,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Credit Limit</h2>
-                        <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ creditcard.credit_limit|floatformat:0 }}</p>
+                        <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ creditcard.credit_limit|indian_format:0 }}</p>
                     </div>
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Available Credit</h2>
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">₹{{ creditcard.available_credit|floatformat:2 }}</p>
+                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">₹{{ creditcard.available_credit|indian_format }}</p>
                     </div>
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Amount Owed</h2>
-                        <p class="text-2xl font-bold text-red-600 dark:text-red-400">₹{{ creditcard.amount_owed|floatformat:2 }}</p>
+                        <p class="text-2xl font-bold text-red-600 dark:text-red-400">₹{{ creditcard.amount_owed|indian_format }}</p>
                     </div>
                 </div>
 
@@ -204,7 +205,7 @@
                                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">{{ transaction.purpose|truncatewords:8 }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ transaction.get_method_type_display }}</td>
                                         <td class="px-4 py-3 text-sm font-medium text-right {% if transaction.transaction_type == 'income' %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
-                                            {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount|floatformat:2 }}
+                                            {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount|indian_format }}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -221,7 +222,7 @@
                                         {{ transaction.category.name|title }}
                                     </span>
                                     <span class="text-base font-bold {% if transaction.transaction_type == 'income' %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">
-                                        {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount|floatformat:2 }}
+                                        {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}₹{{ transaction.amount|indian_format }}
                                     </span>
                                 </div>
                                 <p class="text-gray-900 dark:text-white text-sm mb-2">{{ transaction.purpose }}</p>
@@ -276,7 +277,7 @@
                                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-white">{{ transfer|get_transfer_to_account }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{{ transfer.memo|truncatewords:6 }}</td>
                                         <td class="px-4 py-3 text-sm font-medium text-right {% if transfer|is_outgoing_transfer:creditcard %}text-red-600 dark:text-red-400{% else %}text-green-600 dark:text-green-400{% endif %}">
-                                            {% if transfer|is_outgoing_transfer:creditcard %}-{% else %}+{% endif %}₹{{ transfer.amount|floatformat:2 }}
+                                            {% if transfer|is_outgoing_transfer:creditcard %}-{% else %}+{% endif %}₹{{ transfer.amount|indian_format }}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -292,7 +293,7 @@
                                         {{ transfer|get_transfer_from_account }} → {{ transfer|get_transfer_to_account }}
                                     </span>
                                     <span class="text-base font-bold {% if transfer|is_outgoing_transfer:creditcard %}text-red-600 dark:text-red-400{% else %}text-green-600 dark:text-green-400{% endif %}">
-                                        {% if transfer|is_outgoing_transfer:creditcard %}-{% else %}+{% endif %}₹{{ transfer.amount|floatformat:2 }}
+                                        {% if transfer|is_outgoing_transfer:creditcard %}-{% else %}+{% endif %}₹{{ transfer.amount|indian_format }}
                                     </span>
                                 </div>
                                 <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">{{ transfer.memo }}</p>

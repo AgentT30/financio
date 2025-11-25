@@ -129,8 +129,8 @@ class Transfer(models.Model):
         if self.amount and self.amount <= 0:
             raise ValidationError("Transfer amount must be positive")
         
-        # From and to accounts must be different
-        if (self.from_account_content_type == self.to_account_content_type and 
+        # From and to accounts must be different (compare ContentType ID and object ID)
+        if (self.from_account_content_type_id == self.to_account_content_type_id and 
             self.from_account_object_id == self.to_account_object_id):
             raise ValidationError("Cannot transfer to the same account")
         

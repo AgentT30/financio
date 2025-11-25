@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',  # For number formatting (intcomma filter)
     
     # Core and utilities
     'core',

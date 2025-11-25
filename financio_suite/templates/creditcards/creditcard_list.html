@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load indian_numbers %}
 
 {% block title %}Credit Cards - Financio{% endblock %}
 
@@ -17,7 +18,7 @@
                     <div>
                         <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight">Credit Cards</h1>
                         <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                            {{ active_count }} active • {{ archived_count}} archived • ₹{{ total_owed|floatformat:2 }} owed
+                            {{ active_count }} active • {{ archived_count}} archived • ₹{{ total_owed|indian_format }} owed
                         </p>
                     </div>
                     <a href="{% url 'creditcard_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
@@ -44,15 +45,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-gray-600 dark:text-gray-400 text-sm">Total Credit Limit</p>
-                        <p class="text-gray-900 dark:text-white text-2xl font-bold">₹{{ total_credit_limit|floatformat:0 }}</p>
+                        <p class="text-gray-900 dark:text-white text-2xl font-bold">₹{{ total_credit_limit|indian_format:0 }}</p>
                     </div>
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-gray-600 dark:text-gray-400 text-sm">Available Credit</p>
-                        <p class="text-green-600 dark:text-green-400 text-2xl font-bold">₹{{ total_available_credit|floatformat:2 }}</p>
+                        <p class="text-green-600 dark:text-green-400 text-2xl font-bold">₹{{ total_available_credit|indian_format }}</p>
                     </div>
                     <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <p class="text-gray-600 dark:text-gray-400 text-sm">Amount Owed</p>
-                        <p class="text-red-600 dark:text-red-400 text-2xl font-bold">₹{{ total_owed|floatformat:2 }}</p>
+                        <p class="text-red-600 dark:text-red-400 text-2xl font-bold">₹{{ total_owed|indian_format }}</p>
                     </div>
                 </div>
                 {% endif %}
@@ -102,15 +103,15 @@
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-600 dark:text-gray-400">Credit Limit</span>
-                                    <span class="text-gray-900 dark:text-white font-medium">₹{{ card.credit_limit|floatformat:0 }}</span>
+                                    <span class="text-gray-900 dark:text-white font-medium">₹{{ card.credit_limit|indian_format:0 }}</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-600 dark:text-gray-400">Available</span>
-                                    <span class="text-green-600 dark:text-green-400 font-medium">₹{{ card.available_credit|floatformat:2 }}</span>
+                                    <span class="text-green-600 dark:text-green-400 font-medium">₹{{ card.available_credit|indian_format }}</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-600 dark:text-gray-400">Amount Owed</span>
-                                    <span class="text-red-600 dark:text-red-400 font-medium">₹{{ card.amount_owed|floatformat:2 }}</span>
+                                    <span class="text-red-600 dark:text-red-400 font-medium">₹{{ card.amount_owed|indian_format }}</span>
                                 </div>
                                 <div class="flex justify-between items-center text-sm">
                                     <span class="text-gray-600 dark:text-gray-400">Expiry</span>
