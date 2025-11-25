@@ -5,30 +5,61 @@ from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.deletion import ProtectedError
+from decimal import Decimal
 from .models import BankAccount, BankAccountBalance
 from .forms import BankAccountForm
+from creditcards.models import CreditCard, CreditCardBalance
 from transactions.models import Transaction
 from transfers.models import Transfer
 
 
 @login_required
 def account_list(request):
-    """Display all user bank accounts."""
-    accounts = BankAccount.objects.filter(
+    """Display all user bank accounts and credit cards."""
+    # Query bank accounts
+    bank_accounts = BankAccount.objects.filter(
         user=request.user
     ).select_related('balance').order_by('status', '-created_at')
     
-    # Calculate totals
-    active_accounts = accounts.filter(status='active')
-    total_balance = active_accounts.aggregate(
+    # Query credit cards
+    credit_cards = CreditCard.objects.filter(
+        user=request.user
+    ).select_related('balance').order_by('status', '-created_at')
+    
+    # Calculate bank account stats
+    active_banks = bank_accounts.filter(status='active')
+    total_bank_balance = active_banks.aggregate(
         total=Sum('balance__balance_amount')
-    )['total'] or 0
+    )['total'] or Decimal('0.00')
+    
+    # Calculate credit card stats
+    active_cards = credit_cards.filter(status='active')
+    total_credit_limit = active_cards.aggregate(
+        total=Sum('credit_limit')
+    )['total'] or Decimal('0.00')
+    
+    # Calculate total available credit and amount owed
+    total_available_credit = Decimal('0.00')
+    total_amount_owed = Decimal('0.00')
+    
+    for card in active_cards:
+        total_available_credit += card.available_credit()
+        total_amount_owed += card.amount_owed()
     
     context = {
-        'accounts': accounts,
-        'active_count': active_accounts.count(),
-        'archived_count': accounts.filter(status='archived').count(),
-        'total_balance': total_balance,
+        # Bank accounts
+        'bank_accounts': bank_accounts,
+        'active_banks_count': active_banks.count(),
+        'archived_banks_count': bank_accounts.filter(status='archived').count(),
+        'total_bank_balance': total_bank_balance,
+        
+        # Credit cards
+        'credit_cards': credit_cards,
+        'active_cards_count': active_cards.count(),
+        'archived_cards_count': credit_cards.filter(status='archived').count(),
+        'total_credit_limit': total_credit_limit,
+        'total_available_credit': total_available_credit,
+        'total_amount_owed': total_amount_owed,
     }
     return render(request, 'accounts/account_list.html', context)
 

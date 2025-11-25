@@ -128,7 +128,7 @@
 - [x] URL patterns configured in creditcards/urls.py
 - [x] Admin interface registered (CreditCardAdmin)
 
-**Phase 3A-3G: Credit Card Integration** 🚧 IN PROGRESS
+**Phase 3A-3G: Credit Card Integration** ✅ PHASE 3A & 3B COMPLETED | 🚧 PHASE 3C-3G IN PROGRESS
 See detailed breakdown below in "Credit Card Integration - Full System Integration" section
 
 **Phase 4: Future - Other Specialized Apps** 🔜
@@ -417,65 +417,110 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - Net Worth = Bank balances + Investments (does NOT subtract credit card debt)
 - Combined "Accounts & Cards" page with separate sections
 
-**Phase 3A: Transaction & Transfer Integration** 🔜 NEXT
-- [ ] Update TransactionForm (transactions/forms.py)
-  - [ ] Create helper function to get all accounts (banks + credit cards)
-  - [ ] Add emoji prefix to account choices (🏦 for banks, 💳 for cards)
-  - [ ] Update account field to use combined queryset
-  - [ ] Ensure GenericForeignKey handles both BankAccount and CreditCard
-- [ ] Update TransferForm (transfers/forms.py)
-  - [ ] Update from_account field with combined queryset + emojis
-  - [ ] Update to_account field with combined queryset + emojis
-  - [ ] Support Bank → Credit Card (bill payments reduce debt)
-  - [ ] Support Credit Card → Bank (refunds/reversals increase debt)
-  - [ ] Support Credit Card → Credit Card (balance transfers)
-- [ ] Update transaction_create view
-  - [ ] Handle ContentType for both BankAccount and CreditCard
-  - [ ] Set correct GenericFK fields based on account type
-- [ ] Update transfer_create view
-  - [ ] Handle mixed account types in transfers
-  - [ ] Verify ledger service works with CreditCard
-- [ ] Test credit card transactions
-  - [ ] Create expense on credit card (debt increases)
-  - [ ] Create income on credit card (cashback/refund, debt decreases)
-- [ ] Test credit card transfers
-  - [ ] Bank → Credit Card bill payment (bank ↓, debt ↓)
-  - [ ] Credit Card → Bank refund (debt ↑, bank ↑)
+**Phase 3A: Transaction & Transfer Integration** ✅ COMPLETED
+- [x] Created core/utils.py with helper functions
+  - [x] get_all_accounts_with_emoji() - Returns banks + credit cards with emoji prefixes
+  - [x] get_account_from_compound_value() - Extracts account from "id|modelname" format
+  - [x] get_account_choices_for_form() - Returns Django form choices
+- [x] Update TransactionForm (transactions/forms.py)
+  - [x] Changed account field from ModelChoiceField to ChoiceField
+  - [x] Uses unified dropdown with emoji indicators (🏦 Bank, 💳 Credit Card)
+  - [x] Added clean_account() method to extract actual account object
+  - [x] Edit mode support: reconstructs compound value from GenericFK
+- [x] Update TransferForm (transfers/forms.py)
+  - [x] Updated from_account field with combined queryset + emojis
+  - [x] Updated to_account field with combined queryset + emojis
+  - [x] Added clean_from_account() and clean_to_account() methods
+  - [x] Supports Bank → Credit Card (bill payments reduce debt)
+  - [x] Supports Credit Card → Bank (refunds/reversals increase debt)
+  - [x] Supports Credit Card → Credit Card (balance transfers)
+- [x] Update transaction views (transactions/views.py)
+  - [x] transaction_create: Gets account from form.cleaned_data, sets GenericFK
+  - [x] transaction_edit: Fixed GenericFK field names, reverse-and-recreate pattern
+  - [x] Wrapped in db_transaction.atomic() for select_for_update() compatibility
+- [x] Update transfer views (transfers/views.py)
+  - [x] transfer_create: Already compatible with GenericFK from form
+  - [x] No changes needed - form handles everything
+- [x] Update LedgerService (ledger/services.py)
+  - [x] _update_account_balance() now supports both BankAccount and CreditCard
+  - [x] Uses CreditCardBalance for credit cards (parallel to BankAccountBalance)
+  - [x] Account type detection via __class__.__name__
+- [x] Bug Fixes
+  - [x] Fixed FieldError: Changed deleted_at to status='active' in core/utils.py
+  - [x] Fixed transaction_edit: Corrected GenericFK field names (account_content_type/account_object_id)
+  - [x] Fixed transaction_edit: Account field not populating in form (removed incorrect initial override)
+  - [x] Fixed transaction_edit: Missing arguments error in _update_account_balance()
+  - [x] Fixed transaction_edit: Reverse-and-recreate pattern with proper balance reversal
+  - [x] Fixed transaction_edit: ControlAccount balance update error (skip ControlAccounts)
+  - [x] Fixed transaction_edit: Protected foreign key error (unlink before delete)
+  - [x] Added db_transaction.atomic() wrapper for select_for_update() compatibility
+- [x] Created recalculate_balances management command (ledger/management/commands/)
+  - [x] Recalculates all account balances from ledger postings
+  - [x] Only counts postings from active transactions/transfers
+  - [x] --dry-run flag to preview changes
+  - [x] --cleanup-orphans flag to delete orphaned journal entries
+  - [x] Shows detailed before/after balance comparison
+  - [x] Safe to run anytime for balance verification/correction
+- [x] Testing completed
+  - [x] Create expense on credit card (debt increases) ✓
+  - [x] Create income on credit card (cashback/refund, debt decreases) ✓
+  - [x] Edit transaction with account change ✓
+  - [x] Bank → Credit Card bill payment (bank ↓, debt ↓) ✓
+  - [x] Credit Card → Bank refund (debt ↑, bank ↑) ✓
+  - [x] Balance recalculation from ledger ✓
+  - [x] Orphaned journal entry cleanup ✓
 
-**Phase 3B: Dashboard Integration**
-- [ ] Update dashboard view (core/views.py)
-  - [ ] Keep Net Worth calculation for banks only (no debt subtraction)
-  - [ ] Update Total Accounts card to show "X Banks • Y Cards"
-  - [ ] Make Total Accounts card clickable (link to accounts page)
-  - [ ] Include credit card transactions in Recent Transactions section
-- [ ] Update dashboard template (templates/dashboard/dashboard.html)
-  - [ ] Update Total Accounts card display (show bank/card breakdown)
-  - [ ] Ensure recent transactions show credit card transactions
-  - [ ] Update "Add Account" button to show choice modal
-- [ ] Create account type choice modal
-  - [ ] Modal with two options: "Add Bank Account" and "Add Credit Card"
-  - [ ] Link to respective create forms
-  - [ ] Responsive design with icons
+**Phase 3B: Dashboard Integration** ✅ COMPLETED
+- [x] Update dashboard view (core/views.py)
+  - [x] Updated Net Worth calculation for banks only (excludes credit card debt)
+  - [x] Added status='active' filter for bank accounts
+  - [x] Count banks and credit cards separately (total_banks, total_cards)
+  - [x] Added clear comments explaining Net Worth excludes credit card debt
+- [x] Update dashboard template (templates/dashboard/dashboard.html)
+  - [x] Updated Total Accounts card display ("X Banks • Y Cards" format)
+  - [x] Total Accounts card already clickable (links to accounts page)
+  - [x] Recent transactions automatically show credit card transactions with emoji indicators
+- [x] Create account type choice modal
+  - [x] Modal with two options: "🏦 Add Bank Account" and "💳 Add Credit Card"
+  - [x] Links to respective create forms (account_create and /creditcards/create/)
+  - [x] Responsive design with icons and hover effects
+  - [x] Click outside or Escape key to close
+  - [x] Smooth animations and transitions
+- [x] Enhanced transaction template tags (transaction_tags.py)
+  - [x] Updated get_account() to include emoji indicators
+  - [x] Updated get_transfer_from_account() to include emoji indicators
+  - [x] Updated get_transfer_to_account() to include emoji indicators
+  - [x] Emojis: 🏦 for BankAccount, 💳 for CreditCard
+  - [x] Applies across entire application automatically
 
-**Phase 3C: Navigation & Combined Accounts Page**
-- [ ] Rename "Accounts" to "Accounts & Cards" in navigation
-  - [ ] Update header.html menu item
-  - [ ] Update sidebar.html menu item
-  - [ ] Update active state detection
-- [ ] Update account_list view (accounts/views.py)
-  - [ ] Query both BankAccount and CreditCard models
-  - [ ] Pass both querysets to template separately
-  - [ ] Calculate stats for both types
-- [ ] Update account_list template (templates/accounts/account_list.html)
-  - [ ] Add section headers: "Bank Accounts" and "Credit Cards"
-  - [ ] Display bank accounts in first section with 🏦 emoji
-  - [ ] Display credit cards in second section with 💳 emoji
-  - [ ] Show appropriate stats for each section
-  - [ ] Keep separate action buttons for each type
-  - [ ] Responsive grid layout for both sections
-- [ ] Update breadcrumbs/page titles throughout app
+**Phase 3C: Navigation & Combined Accounts Page** ✅ COMPLETED
+- [x] Rename "Accounts" to "Accounts & Cards" in navigation
+  - [x] Update header.html menu item
+  - [x] Update sidebar.html menu item
+  - [x] Update header_sidebar.html component
+  - [x] Update dashboard.html navigation
+  - [x] Update active state detection
+- [x] Update account_list view (accounts/views.py)
+  - [x] Query both BankAccount and CreditCard models
+  - [x] Pass both querysets to template separately (bank_accounts, credit_cards)
+  - [x] Calculate bank stats (active_banks_count, archived_banks_count, total_bank_balance)
+  - [x] Calculate credit card stats (active_cards_count, archived_cards_count, total_credit_limit, total_available_credit, total_amount_owed)
+  - [x] Iterate through active cards to sum available_credit() and amount_owed()
+- [x] Update account_list template (templates/accounts/account_list.html)
+  - [x] Page title updated to "Accounts & Cards"
+  - [x] Created two-section layout with separate headers
+  - [x] Bank Accounts section with 🏦 emoji header
+  - [x] Credit Cards section with 💳 emoji header
+  - [x] Bank stats: "X active • Y archived • ₹Z total"
+  - [x] Credit card stats: "X active • Y archived" + 3 stat cards (Total Limit, Available Credit, Amount Owed)
+  - [x] Separate action buttons ("Add Bank Account" and "Add Credit Card")
+  - [x] Responsive grid layout for both sections (1-2-3 column responsive)
+  - [x] Separate empty states for each section
+  - [x] Dark mode support throughout
+  - [x] Menu ID prefixes to avoid conflicts (menu-bank-, menu-card-)
+  - [x] Credit card URLs use direct paths (/creditcards/...)
 
-**Phase 3D: Account Detail Page Enhancement**
+**Phase 3D: Account Detail Page Enhancement** 🔜 NEXT
 - [ ] Verify BankAccount detail page (accounts/account_detail.html)
   - [ ] Ensure transfers to/from credit cards display correctly
   - [ ] Test transaction tags with mixed account types
@@ -700,4 +745,4 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Telegram/Email notifications
 
 ---
-**Last Updated:** 24 November 2025
+**Last Updated:** 25 November 2025

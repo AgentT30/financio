@@ -4,6 +4,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime
 from accounts.models import BankAccount, BankAccountBalance
+from creditcards.models import CreditCard
 from categories.models import Category
 from transactions.models import Transaction
 
@@ -12,11 +13,16 @@ from transactions.models import Transaction
 def dashboard(request):
     """Dashboard view with account summary and stats."""
     # Get user's bank accounts with balances
-    accounts = BankAccount.objects.filter(user=request.user).select_related('balance').order_by('-created_at')
+    accounts = BankAccount.objects.filter(
+        user=request.user,
+        status='active'
+    ).select_related('balance').order_by('-created_at')
     
-    # Calculate stats
-    total_balance = BankAccountBalance.objects.filter(
-        account__user=request.user
+    # Calculate Net Worth (Bank balances only - excludes credit card debt)
+    # Per user specification: Net Worth = Bank balances + Investments (no debt subtraction)
+    net_worth = BankAccountBalance.objects.filter(
+        account__user=request.user,
+        account__status='active'
     ).aggregate(
         total=Sum('balance_amount')
     )['total'] or 0
@@ -46,9 +52,14 @@ def dashboard(request):
         deleted_at__isnull=True
     ).select_related('category').prefetch_related('account_content_type').order_by('-datetime_ist')[:10]
     
+    # Count banks and credit cards separately
+    total_banks = BankAccount.objects.filter(user=request.user, status='active').count()
+    total_cards = CreditCard.objects.filter(user=request.user, status='active').count()
+    
     stats = {
-        'net_worth': total_balance,
-        'total_accounts': accounts.count(),
+        'net_worth': net_worth,  # Bank balances only (no credit card debt)
+        'total_banks': total_banks,
+        'total_cards': total_cards,
         'total_categories': Category.objects.filter(user=request.user).count(),
         'monthly_income': monthly_income,
         'monthly_expense': monthly_expense,

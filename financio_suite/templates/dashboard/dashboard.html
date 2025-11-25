@@ -31,7 +31,7 @@
                 <!-- Desktop Navigation - Hidden on mobile -->
                 <div class="hidden lg:flex items-center gap-6">
                     <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'account_list' %}">Accounts</a>
+                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'account_list' %}">Accounts & Cards</a>
                     <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'transactions:transaction_list' %}">Transactions</a>
                     <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Reports</a>
                 </div>
@@ -83,7 +83,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                                     <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path>
                                 </svg>
-                                <p class="text-sm font-medium leading-normal">Accounts</p>
+                                <p class="text-sm font-medium leading-normal">Accounts & Cards</p>
                             </a>
                             <a href="{% url 'transactions:transaction_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
@@ -135,7 +135,13 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
                             </div>
-                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">{{ stats.total_accounts|default:"0" }}</p>
+                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
+                                {% if stats.total_banks > 0 or stats.total_cards > 0 %}
+                                    {{ stats.total_banks }} Bank{{ stats.total_banks|pluralize }} • {{ stats.total_cards }} Card{{ stats.total_cards|pluralize }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                             <p class="text-green-900 dark:text-green-300 text-sm md:text-base font-medium leading-normal">Income (MTD)</p>
@@ -262,9 +268,9 @@
                             <a href="{% url 'transactions:transaction_create' %}" class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">New Transaction</span>
                             </a>
-                            <a href="{% url 'account_create' %}" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                            <button onclick="openAccountTypeModal()" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">Add Account</span>
-                            </a>
+                            </button>
                             <a href="{% url 'transactions:transaction_list' %}?view=transfers" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
                                 <span class="truncate">Transfer Money</span>
                             </a>
@@ -272,6 +278,53 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Type Choice Modal -->
+<div id="accountTypeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <!-- Close Button -->
+        <button onclick="closeAccountTypeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Modal Header -->
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Add New Account</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Choose the type of account you want to add</p>
+        
+        <!-- Account Type Options -->
+        <div class="space-y-3">
+            <!-- Bank Account Option -->
+            <a href="{% url 'account_create' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏦
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Bank Account</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Savings, Current, Checking, Salary</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Credit Card Option -->
+            <a href="/creditcards/create/" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    💳
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Credit Card</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Visa, Mastercard, RuPay, Amex</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
         </div>
     </div>
 </div>
@@ -287,12 +340,36 @@ function toggleProfileMenu() {
     menu.classList.toggle('hidden');
 }
 
+function openAccountTypeModal() {
+    const modal = document.getElementById('accountTypeModal');
+    modal.classList.remove('hidden');
+}
+
+function closeAccountTypeModal() {
+    const modal = document.getElementById('accountTypeModal');
+    modal.classList.add('hidden');
+}
+
 // Close profile menu when clicking outside
 document.addEventListener('click', function(event) {
     const menu = document.getElementById('profileMenu');
     const button = event.target.closest('button[onclick="toggleProfileMenu()"]');
     if (!button && !menu.contains(event.target)) {
         menu.classList.add('hidden');
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('accountTypeModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeAccountTypeModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeAccountTypeModal();
     }
 });
 

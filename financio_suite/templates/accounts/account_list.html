@@ -12,22 +12,6 @@
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
             <div class="max-w-6xl mx-auto">
-                <!-- Header with Create Button -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <div>
-                        <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight">Accounts</h1>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                            {{ active_count }} active • {{ archived_count }} archived • ₹{{ total_balance|floatformat:2 }} total
-                        </p>
-                    </div>
-                    <a href="{% url 'account_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Add Account
-                    </a>
-                </div>
-
                 <!-- Messages -->
                 {% if messages %}
                 <div class="mb-6">
@@ -39,89 +23,248 @@
                 </div>
                 {% endif %}
 
-                <!-- Accounts Grid -->
-                {% if accounts %}
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {% for account in accounts %}
-                        <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-shadow {% if account.status == 'archived' %}opacity-60{% endif %}">
-                            <!-- Account Header -->
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex items-center gap-3 flex-1 min-w-0">
-                                    {% if account.picture %}
-                                    <img src="{{ account.picture.url }}" alt="{{ account.name }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
-                                    {% else %}
-                                    <div class="flex items-center justify-center rounded-lg flex-shrink-0 w-12 h-12" style="background-color: {{ account.color|default:'#4d88ff' }};">
-                                        <span class="text-white font-bold text-lg">{{ account.name|slice:":1"|upper }}</span>
-                                    </div>
-                                    {% endif %}
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-gray-900 dark:text-white font-semibold truncate">{{ account.name }}</h3>
-                                        <p class="text-gray-500 dark:text-gray-400 text-sm">{{ account.get_account_type_display|title }}</p>
-                                    </div>
-                                </div>
-                                <div class="relative flex-shrink-0 ml-2">
-                                    <button onclick="toggleMenu('menu-{{ account.id }}')" class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
-                                        </svg>
-                                    </button>
-                                    <div id="menu-{{ account.id }}" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
-                                        <a href="{% url 'account_detail' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View Details</a>
-                                        <a href="{% url 'account_edit' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
-                                        <a href="{% url 'account_toggle_status' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                            {% if account.status == 'active' %}Archive{% else %}Activate{% endif %}
-                                        </a>
-                                        <a href="{% url 'account_delete' account.pk %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Account Details -->
-                            <div class="space-y-2 mb-4">
-                                {% if account.institution %}
-                                <div class="flex items-center gap-2 text-sm">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                    </svg>
-                                    <span class="text-gray-600 dark:text-gray-400">{{ account.institution }}</span>
-                                </div>
-                                {% endif %}
-                                <div class="flex items-center gap-2 text-sm">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                                    </svg>
-                                    <span class="text-gray-600 dark:text-gray-400">{{ account.get_masked_account_number }}</span>
-                                </div>
-                            </div>
-
-                            <!-- Balance -->
-                            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Current Balance</p>
-                                <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|floatformat:2 }}</p>
-                            </div>
-
-                            <!-- Status Badge -->
-                            {% if account.status == 'archived' %}
-                            <div class="mt-3">
-                                <span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                                    Archived
-                                </span>
-                            </div>
-                            {% endif %}
+                <!-- Bank Accounts Section -->
+                <div class="mb-10">
+                    <!-- Section Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-gray-900 dark:text-white text-xl md:text-2xl font-bold leading-tight flex items-center gap-2">
+                                <span>🏦</span>
+                                <span>Bank Accounts</span>
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                                {{ active_banks_count }} active • {{ archived_banks_count }} archived • ₹{{ total_bank_balance|floatformat:2 }} total
+                            </p>
                         </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-12">
-                        <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                        </svg>
-                        <p class="text-gray-500 dark:text-gray-400 mb-4">No accounts yet. Create your first account to get started!</p>
-                        <a href="{% url 'account_create' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
-                            Add First Account
+                        <a href="{% url 'account_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Bank Account
                         </a>
                     </div>
-                {% endif %}
+
+                    <!-- Bank Accounts Grid -->
+                    {% if bank_accounts %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for account in bank_accounts %}
+                            <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-shadow {% if account.status == 'archived' %}opacity-60{% endif %}">
+                                <!-- Account Header -->
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        {% if account.picture %}
+                                        <img src="{{ account.picture.url }}" alt="{{ account.name }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                                        {% else %}
+                                        <div class="flex items-center justify-center rounded-lg flex-shrink-0 w-12 h-12" style="background-color: {{ account.color|default:'#4d88ff' }};">
+                                            <span class="text-white font-bold text-lg">{{ account.name|slice:":1"|upper }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-gray-900 dark:text-white font-semibold truncate">{{ account.name }}</h3>
+                                            <p class="text-gray-500 dark:text-gray-400 text-sm">{{ account.get_account_type_display|title }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="relative flex-shrink-0 ml-2">
+                                        <button onclick="toggleMenu('menu-bank-{{ account.id }}')" class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                                            </svg>
+                                        </button>
+                                        <div id="menu-bank-{{ account.id }}" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                                            <a href="{% url 'account_detail' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View Details</a>
+                                            <a href="{% url 'account_edit' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
+                                            <a href="{% url 'account_toggle_status' account.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                {% if account.status == 'active' %}Archive{% else %}Activate{% endif %}
+                                            </a>
+                                            <a href="{% url 'account_delete' account.pk %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Account Details -->
+                                <div class="space-y-2 mb-4">
+                                    {% if account.institution %}
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                        <span class="text-gray-600 dark:text-gray-400">{{ account.institution }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                        </svg>
+                                        <span class="text-gray-600 dark:text-gray-400">{{ account.get_masked_account_number }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Balance -->
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Current Balance</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|floatformat:2 }}</p>
+                                </div>
+
+                                <!-- Status Badge -->
+                                {% if account.status == 'archived' %}
+                                <div class="mt-3">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                        Archived
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12 bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700">
+                            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">No bank accounts yet. Create your first bank account to get started!</p>
+                            <a href="{% url 'account_create' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                                Add First Bank Account
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Credit Cards Section -->
+                <div>
+                    <!-- Section Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-gray-900 dark:text-white text-xl md:text-2xl font-bold leading-tight flex items-center gap-2">
+                                <span>💳</span>
+                                <span>Credit Cards</span>
+                            </h2>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                                {{ active_cards_count }} active • {{ archived_cards_count }} archived
+                            </p>
+                        </div>
+                        <a href="/creditcards/create/" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Add Credit Card
+                        </a>
+                    </div>
+
+                    <!-- Credit Card Stats -->
+                    {% if credit_cards %}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <!-- Total Credit Limit -->
+                            <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Credit Limit</p>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">₹{{ total_credit_limit|floatformat:2 }}</p>
+                            </div>
+                            <!-- Available Credit -->
+                            <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Available Credit</p>
+                                <p class="text-2xl font-bold text-green-600 dark:text-green-400">₹{{ total_available_credit|floatformat:2 }}</p>
+                            </div>
+                            <!-- Amount Owed -->
+                            <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Amount Owed</p>
+                                <p class="text-2xl font-bold text-red-600 dark:text-red-400">₹{{ total_amount_owed|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Credit Cards Grid -->
+                    {% if credit_cards %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for card in credit_cards %}
+                            <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-shadow {% if card.status == 'archived' %}opacity-60{% endif %}">
+                                <!-- Card Header -->
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        {% if card.picture %}
+                                        <img src="{{ card.picture.url }}" alt="{{ card.name }}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0">
+                                        {% else %}
+                                        <div class="flex items-center justify-center rounded-lg flex-shrink-0 w-12 h-12" style="background-color: {{ card.color|default:'#ff4d88' }};">
+                                            <span class="text-white font-bold text-lg">{{ card.name|slice:":1"|upper }}</span>
+                                        </div>
+                                        {% endif %}
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-gray-900 dark:text-white font-semibold truncate">{{ card.name }}</h3>
+                                            <p class="text-gray-500 dark:text-gray-400 text-sm">Credit Card</p>
+                                        </div>
+                                    </div>
+                                    <div class="relative flex-shrink-0 ml-2">
+                                        <button onclick="toggleMenu('menu-card-{{ card.id }}')" class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path>
+                                            </svg>
+                                        </button>
+                                        <div id="menu-card-{{ card.id }}" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                                            <a href="/creditcards/{{ card.pk }}/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View Details</a>
+                                            <a href="/creditcards/{{ card.pk }}/edit/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
+                                            <a href="/creditcards/{{ card.pk }}/toggle-status/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                {% if card.status == 'active' %}Archive{% else %}Activate{% endif %}
+                                            </a>
+                                            <a href="/creditcards/{{ card.pk }}/delete/" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card Details -->
+                                <div class="space-y-2 mb-4">
+                                    {% if card.institution %}
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                        <span class="text-gray-600 dark:text-gray-400">{{ card.institution }}</span>
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex items-center gap-2 text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                        </svg>
+                                        <span class="text-gray-600 dark:text-gray-400">{{ card.get_masked_card_number }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Credit Limit and Usage -->
+                                <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Credit Limit</p>
+                                        <p class="text-sm font-semibold text-gray-900 dark:text-white">₹{{ card.credit_limit|floatformat:2 }}</p>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Available</p>
+                                        <p class="text-sm font-semibold text-green-600 dark:text-green-400">₹{{ card.available_credit|floatformat:2 }}</p>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Amount Owed</p>
+                                        <p class="text-sm font-semibold text-red-600 dark:text-red-400">₹{{ card.amount_owed|floatformat:2 }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Status Badge -->
+                                {% if card.status == 'archived' %}
+                                <div class="mt-3">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+                                        Archived
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12 bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700">
+                            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">No credit cards yet. Add your first credit card to start tracking expenses!</p>
+                            <a href="/creditcards/create/" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                                Add First Credit Card
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
                 </div>
             </div>
     </div>
