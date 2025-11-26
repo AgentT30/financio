@@ -536,3 +536,82 @@ COMMENT ON COLUMN transfers.journal_entry_id IS 'Linked journal entry in ledger 
 COMMENT ON COLUMN transfers.created_at IS 'When transfer was recorded (IST)';
 COMMENT ON COLUMN transfers.updated_at IS 'Last update timestamp (IST)';
 COMMENT ON COLUMN transfers.deleted_at IS 'Soft delete timestamp (NULL = active)';
+
+-- ============================================================================
+-- FIXED DEPOSITS TABLE
+-- ============================================================================
+-- Stores fixed deposit investments (informational records only)
+-- FDs do NOT integrate with transactions/transfers/ledger system
+
+CREATE TABLE IF NOT EXISTS fixed_deposits (
+    id BIGSERIAL PRIMARY KEY,
+    
+    -- Ownership
+    user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
+    
+    -- Basic Information
+    name VARCHAR(100) NOT NULL,
+    institution VARCHAR(100) NOT NULL,
+    fd_number VARCHAR(50) NULL,
+    
+    -- Financial Details
+    principal_amount NUMERIC(18, 2) NOT NULL CHECK (principal_amount > 0),
+    interest_rate NUMERIC(5, 2) NOT NULL CHECK (interest_rate >= 0 AND interest_rate <= 100),
+    maturity_amount NUMERIC(18, 2) NOT NULL,
+    
+    -- FD Terms
+    compounding_frequency VARCHAR(20) NOT NULL DEFAULT 'quarterly' CHECK (compounding_frequency IN ('monthly', 'quarterly', 'annually')),
+    tenure_months INTEGER NOT NULL CHECK (tenure_months > 0),
+    auto_renewal BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    -- Important Dates
+    opened_on DATE NOT NULL,
+    maturity_date DATE NOT NULL,
+    
+    -- Status
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+    
+    -- Additional Information
+    notes TEXT NULL,
+    color VARCHAR(7) NULL CHECK (color IS NULL OR color ~ '^#[0-9A-Fa-f]{6}$'),
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CONSTRAINT maturity_after_opening CHECK (maturity_date > opened_on),
+    CONSTRAINT maturity_ge_principal CHECK (maturity_amount >= principal_amount)
+);
+
+-- Indexes for performance
+CREATE INDEX idx_fd_user_status ON fixed_deposits(user_id, status);
+CREATE INDEX idx_fd_maturity_date ON fixed_deposits(maturity_date);
+CREATE INDEX idx_fd_status ON fixed_deposits(status);
+
+-- Update trigger
+CREATE TRIGGER update_fixed_deposits_updated_at 
+    BEFORE UPDATE ON fixed_deposits 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Comments
+COMMENT ON TABLE fixed_deposits IS 'Fixed deposit investments (informational only, no ledger integration)';
+COMMENT ON COLUMN fixed_deposits.user_id IS 'Owner of the FD';
+COMMENT ON COLUMN fixed_deposits.name IS 'FD display name/nickname';
+COMMENT ON COLUMN fixed_deposits.institution IS 'Bank name';
+COMMENT ON COLUMN fixed_deposits.fd_number IS 'FD account/certificate number (optional)';
+COMMENT ON COLUMN fixed_deposits.principal_amount IS 'Deposited amount';
+COMMENT ON COLUMN fixed_deposits.interest_rate IS 'Annual interest rate (%)';
+COMMENT ON COLUMN fixed_deposits.maturity_amount IS 'Final amount including interest (user-entered)';
+COMMENT ON COLUMN fixed_deposits.compounding_frequency IS 'Interest compounding frequency: monthly, quarterly, annually';
+COMMENT ON COLUMN fixed_deposits.tenure_months IS 'Duration in months';
+COMMENT ON COLUMN fixed_deposits.auto_renewal IS 'Auto-renew on maturity';
+COMMENT ON COLUMN fixed_deposits.opened_on IS 'FD start date';
+COMMENT ON COLUMN fixed_deposits.maturity_date IS 'When FD matures';
+COMMENT ON COLUMN fixed_deposits.status IS 'FD status: active, archived';
+COMMENT ON COLUMN fixed_deposits.notes IS 'Optional notes';
+COMMENT ON COLUMN fixed_deposits.color IS 'Color code for visual customization (hex format)';
+COMMENT ON COLUMN fixed_deposits.created_at IS 'Record creation time';
+COMMENT ON COLUMN fixed_deposits.updated_at IS 'Last update time';
+

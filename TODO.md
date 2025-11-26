@@ -669,21 +669,120 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] P&L reports (realized/unrealized)
 - [ ] Holdings summary
 
-### 5️⃣ Fixed Deposits (FD) - MEDIUM PRIORITY
-**Models First:**
-- [ ] FD model (amount, rate, tenure, maturity date)
-- [ ] Interest calculation logic
-- [ ] Maturity tracking
-- [ ] Auto-credit to account on maturity (signal)
-- [ ] Create migrations for FD models
+### 5️⃣ Fixed Deposits (FD) - 🚧 IN PROGRESS
+**Objective:** Implement standalone FD tracking module (informational only, NO transaction/ledger integration)
 
-**Then UI (Desktop + Mobile Responsive):**
-- [ ] FD list page with maturity info
-- [ ] Create FD form
-- [ ] Edit FD details
-- [ ] FD details page with interest breakdown
-- [ ] Maturity alerts/notifications
-- [ ] Premature closure handling
+**Key Specifications:**
+- FDs are **standalone models** (do NOT inherit from BaseAccount)
+- FDs do **NOT appear** in transaction/transfer account dropdowns
+- Interest entered **manually** during FD creation (maturity_amount field)
+- NO automatic interest calculation or ledger postings
+- Dashboard net worth includes maturity amounts of **active FDs only**
+- Status workflow: active → archived (via "Mark as Matured" button)
+
+**Phase 1: Models & Admin** - ✅ COMPLETED
+- [x] Create FixedDeposit model in fds/models.py
+  - [x] Fields: user, name, institution, fd_number, principal_amount, interest_rate
+  - [x] Fields: compounding_frequency, tenure_months, opened_on, maturity_date
+  - [x] Fields: maturity_amount, auto_renewal, status, notes, color, timestamps
+  - [x] Status choices: 'active', 'archived'
+  - [x] Validation: maturity_date > opened_on, maturity_amount ≥ principal_amount
+  - [x] Methods: can_delete(), days_to_maturity(), is_matured()
+  - [x] Added get_maturity_badge_info() for badge display logic
+  - [x] Added get_interest_earned() helper method
+- [x] Register FixedDeposit in fds/admin.py
+- [x] Update schema.sql with fixed_deposits table
+- [x] Create and apply migrations
+
+**Phase 2: Forms & Validation** - ✅ COMPLETED
+- [x] Create FixedDepositForm in fds/forms.py
+- [x] All fields with TailwindCSS styling (dark mode)
+- [x] Date pickers for opened_on and maturity_date
+- [x] Validation: principal > 0, interest_rate 0-100%, maturity_date > opened_on
+- [x] Validation: maturity_amount ≥ principal_amount
+- [x] Validation: tenure_months > 0
+- [x] Help texts for each field
+- [x] Field-level validation methods (clean_field methods)
+- [x] Form-level validation in clean() method
+- [x] Disabled editing for archived FDs
+
+**Phase 3: Views & URLs** - ✅ COMPLETED
+- [x] fd_list view (fds/views.py)
+  - [x] List active + archived FDs
+  - [x] Stats card: total FDs, total principal, total maturity amount (active only)
+  - [x] Maturity status badges (green/orange/gray based on dates)
+  - [x] Responsive grid layout
+- [x] fd_create view
+  - [x] Create FD with all fields
+  - [x] Activity logging
+  - [x] Redirect to FD list on success
+- [x] fd_detail view
+  - [x] Show all FD information
+  - [x] "Mark as Matured" button (if active and past maturity date)
+  - [x] Edit/Delete action buttons
+- [x] fd_edit view
+  - [x] Update FD details
+  - [x] Activity logging with field changes
+  - [x] Prevent editing if archived
+- [x] fd_delete view
+  - [x] Confirmation modal
+  - [x] Activity logging
+  - [x] Hard delete (no dependencies to check)
+- [x] fd_mark_matured view
+  - [x] Set status='archived' (irreversible)
+  - [x] Activity logging
+  - [x] Redirect to FD list with success message
+- [x] Create fds/urls.py with 6 URL patterns
+- [x] Register in main urls.py
+
+**Phase 4: Templates** - ✅ COMPLETED
+- [x] fd_list.html
+  - [x] Responsive grid (3 columns desktop, 1 mobile)
+  - [x] Stats card with total counts and amounts
+  - [x] FD cards with maturity badges:
+    - [x] Active + future: "Matures in X days" (green)
+    - [x] Active + past: "Matured X days ago" (orange)
+    - [x] Archived: "Matured on DD/MM/YYYY" (gray)
+  - [x] Action buttons: View, Edit, Delete
+- [x] fd_form.html
+  - [x] Sectioned form (Basic Info, FD Details, Financial Info)
+  - [x] Date pickers with validation
+  - [x] Help texts displayed
+  - [x] Consistent styling with other forms
+- [x] fd_detail.html
+  - [x] All FD information displayed
+  - [x] "Mark as Matured" button (conditional)
+  - [x] Edit/Delete buttons
+  - [x] Color-coded status badge
+- [x] fd_confirm_delete.html
+  - [x] Delete confirmation modal
+  - [x] Show FD name and institution
+
+**Phase 5: Dashboard Integration**
+- [ ] Update dashboard view (core/views.py)
+  - [ ] Query active FDs for user
+  - [ ] Sum maturity_amount for net worth calculation
+  - [ ] Add to net_worth total
+- [ ] Update dashboard template (optional)
+  - [ ] Add FD count to stats (if desired)
+  - [ ] Or keep existing "Total Accounts" card unchanged
+
+**Phase 6: Navigation & Polish**
+- [ ] Add "Fixed Deposits" menu item to header/sidebar
+  - [ ] Links to /fds/
+  - [ ] Active state detection
+- [ ] Test responsive design (mobile/tablet/desktop)
+- [ ] Test all CRUD operations
+- [ ] Test maturity badge logic (all 3 scenarios)
+- [ ] Test dashboard net worth includes FD maturity amounts
+
+**Phase 7: Documentation & Cleanup**
+- [ ] Update schema.sql if needed
+- [ ] Add inline code comments
+- [ ] Test error handling
+- [ ] Verify activity logging works
+- [ ] Update README.md with FD feature
+- [ ] Mark section 5 as completed in TODO.md
 
 ### 6️⃣ Loans - MEDIUM PRIORITY
 **Models First:**
