@@ -132,7 +132,7 @@
                                 {% elif fd.days_to_maturity == 0 %}
                                     Matures today
                                 {% else %}
-                                    Matured {{ fd.days_to_maturity|abs }} days ago
+                                    Matured ({{ fd.days_to_maturity }} days)
                                 {% endif %}
                             </dd>
                         </div>

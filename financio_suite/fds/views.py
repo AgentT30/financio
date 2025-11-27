@@ -35,20 +35,21 @@ def fd_list(request):
     # Calculate stats for active FDs only
     active_fds = fds.filter(status='active')
     
-    stats = {
-        'total_fds': active_fds.count(),
-        'archived_fds': fds.filter(status='archived').count(),
-        'total_principal': active_fds.aggregate(
-            total=Sum('principal_amount')
-        )['total'] or Decimal('0.00'),
-        'total_maturity': active_fds.aggregate(
-            total=Sum('maturity_amount')
-        )['total'] or Decimal('0.00'),
-    }
+    total_fds = active_fds.count()
+    archived_fds = fds.filter(status='archived').count()
+    total_principal = active_fds.aggregate(
+        total=Sum('principal_amount')
+    )['total'] or Decimal('0.00')
+    total_maturity = active_fds.aggregate(
+        total=Sum('maturity_amount')
+    )['total'] or Decimal('0.00')
 
     context = {
-        'fds': fds,
-        'stats': stats,
+        'fixed_deposits': fds,
+        'total_fds': total_fds,
+        'archived_fds': archived_fds,
+        'total_principal': total_principal,
+        'total_maturity': total_maturity,
     }
     return render(request, 'fds/fd_list.html', context)
 

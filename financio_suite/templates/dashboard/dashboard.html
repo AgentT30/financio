@@ -8,114 +8,8 @@
 {% block content %}
 <div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
     <div class="layout-container flex h-full grow flex-col">
-        <!-- Header -->
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-[#27273a] px-4 md:px-10 py-3 relative z-[60] bg-white dark:bg-dark-bg">
-            <div class="flex items-center gap-2 md:gap-4 text-gray-900 dark:text-white">
-                <!-- Sidebar Toggle Button (Mobile & Desktop) -->
-                <button 
-                    onclick="toggleSidebar()" 
-                    class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 dark:bg-dark-surface hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-                    aria-label="Toggle menu"
-                >
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                
-                <a href="/" class="flex items-center gap-2">
-                    <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-6 md:h-8 hidden dark:block">
-                    <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-6 md:h-8 block dark:hidden">
-                    <h2 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Financio</h2>
-                </a>
-            </div>
-            <div class="flex items-center justify-end gap-2 md:gap-4">
-                <!-- Desktop Navigation - Hidden on mobile -->
-                <div class="hidden lg:flex items-center gap-6">
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'dashboard' %}">Dashboard</a>
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'account_list' %}">Accounts & Cards</a>
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="{% url 'transactions:transaction_list' %}">Transactions</a>
-                    <a class="text-gray-900 dark:text-white text-sm font-medium leading-normal hover:text-primary dark:hover:text-primary" href="#">Reports</a>
-                </div>
-                <!-- Theme Toggle -->
-                <button 
-                    onclick="toggleTheme()" 
-                    class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 dark:bg-dark-surface hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-                    aria-label="Toggle theme"
-                >
-                    <svg class="w-5 h-5 hidden dark:block text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-                    </svg>
-                    <svg class="w-5 h-5 block dark:hidden text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                    </svg>
-                </button>
-                <!-- User Profile Dropdown -->
-                <div class="relative">
-                    <button onclick="toggleProfileMenu()" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-                            {{ user.username|slice:":1"|upper }}
-                        </div>
-                    </button>
-                    <div id="profileMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ user.username }}</p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</p>
-                        </div>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Settings</a>
-                        <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </header>
-        
-        <!-- Sidebar -->
-        <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full transition-transform duration-300 ease-in-out z-50 w-64 lg:w-80 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-[#27273a] overflow-y-auto">
-            <div class="flex h-full min-h-screen lg:min-h-[700px] flex-col justify-between p-4">
-                <div class="flex flex-col gap-4">
-                    
-                    <div class="flex flex-col gap-2">
-                            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-200 dark:bg-[#27273a] text-gray-900 dark:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M224,115.55V208a16,16,0,0,1-16,16H168a16,16,0,0,1-16-16V168a8,8,0,0,0-8-8H112a8,8,0,0,0-8,8v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V115.55a16,16,0,0,1,5.17-11.78l80-75.48.11-.11a16,16,0,0,1,21.53,0,1.14,1.14,0,0,0,.11.11l80,75.48A16,16,0,0,1,224,115.55Z"></path>
-                                </svg>
-                                <p class="text-sm font-medium leading-normal">Dashboard</p>
-                            </a>
-                            <a href="{% url 'account_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48Zm0,16V88H32V64Zm0,128H32V104H224v88Zm-16-24a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h32A8,8,0,0,1,208,168Zm-64,0a8,8,0,0,1-8,8H120a8,8,0,0,1,0-16h16A8,8,0,0,1,144,168Z"></path>
-                                </svg>
-                                <p class="text-sm font-medium leading-normal">Accounts & Cards</p>
-                            </a>
-                            <a href="{% url 'transactions:transaction_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M80,64a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H88A8,8,0,0,1,80,64Zm136,56H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm0,64H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16ZM44,52A12,12,0,1,0,56,64,12,12,0,0,0,44,52Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,116Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,44,180Z"></path>
-                                </svg>
-                                <p class="text-sm font-medium leading-normal">Transactions</p>
-                            </a>
-                            <a href="{% url 'category_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M112,88V40a8,8,0,0,1,16,0V88a8,8,0,0,1-16,0Zm96,120H88a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16Zm0-160H88a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16ZM40,64A16,16,0,1,0,56,48,16,16,0,0,0,40,64Zm0,64a16,16,0,1,0,16-16A16,16,0,0,0,40,128Zm0,64a16,16,0,1,0,16-16A16,16,0,0,0,40,192ZM104,168H216a8,8,0,0,0,0-16H104a8,8,0,0,0,0,16Zm112-56H104a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"></path>
-                                </svg>
-                                <p class="text-sm font-medium leading-normal">Categories</p>
-                            </a>
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                    <path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176ZM104,120v24a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm32-16v40a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm32-16v56a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0Z"></path>
-                                </svg>
-                                <p class="text-sm font-medium leading-normal">Reports</p>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                                <path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"></path>
-                            </svg>
-                            <p class="text-sm font-medium leading-normal">Settings</p>
-                        </a>
-                    </div>
-                </div>
-            </div>
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
         
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5">
@@ -331,16 +225,6 @@
 </div>
 
 <script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('-translate-x-full');
-}
-
-function toggleProfileMenu() {
-    const menu = document.getElementById('profileMenu');
-    menu.classList.toggle('hidden');
-}
-
 function openAccountTypeModal() {
     const modal = document.getElementById('accountTypeModal');
     modal.classList.remove('hidden');
@@ -350,15 +234,6 @@ function closeAccountTypeModal() {
     const modal = document.getElementById('accountTypeModal');
     modal.classList.add('hidden');
 }
-
-// Close profile menu when clicking outside
-document.addEventListener('click', function(event) {
-    const menu = document.getElementById('profileMenu');
-    const button = event.target.closest('button[onclick="toggleProfileMenu()"]');
-    if (!button && !menu.contains(event.target)) {
-        menu.classList.add('hidden');
-    }
-});
 
 // Close modal when clicking outside
 document.getElementById('accountTypeModal').addEventListener('click', function(event) {
@@ -372,14 +247,6 @@ document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeAccountTypeModal();
     }
-});
-
-// Close sidebar when clicking on a link
-document.querySelectorAll('#sidebar a').forEach(link => {
-    link.addEventListener('click', function() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.add('-translate-x-full');
-    });
 });
 </script>
 {% endblock %}
