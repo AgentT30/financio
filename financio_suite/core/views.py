@@ -5,6 +5,8 @@ from django.utils import timezone
 from datetime import datetime
 from accounts.models import BankAccount
 from creditcards.models import CreditCard
+from fds.models import FixedDeposit
+from investments.models import Investment
 from categories.models import Category
 from transactions.models import Transaction
 
@@ -71,14 +73,34 @@ def dashboard(request):
         deleted_at__isnull=True
     ).select_related('category').prefetch_related('account_content_type').order_by('-datetime_ist')[:10]
 
-    # Count banks and credit cards separately
+    # Count banks, credit cards, FDs, and Investments separately
     total_banks = BankAccount.objects.filter(user=request.user, status='active').count()
     total_cards = CreditCard.objects.filter(user=request.user, status='active').count()
+    total_fds = FixedDeposit.objects.filter(user=request.user, status='active').count()
+    total_investments = Investment.objects.filter(user=request.user, status='active').count()
+
+    # Calculate total FD value (sum of maturity amounts for active FDs)
+    total_fd_value = FixedDeposit.objects.filter(
+        user=request.user, 
+        status='active'
+    ).aggregate(total=Sum('maturity_amount'))['total'] or 0
+
+    # Calculate total Investment value
+    # Since current_value is a property, we have to sum it in Python
+    # Or we can annotate it if we move calculation to DB (but it depends on transactions)
+    # For now, iterating is fine as number of investments is likely small
+    active_investments = Investment.objects.filter(user=request.user, status='active')
+    total_investment_value = sum(inv.current_value for inv in active_investments)
+
+    # Add FD and Investment value to net worth
+    net_worth += total_fd_value + total_investment_value
 
     stats = {
-        'net_worth': net_worth,  # Bank balances only (no credit card debt)
+        'net_worth': net_worth,  # Bank + FD + Investments
         'total_banks': total_banks,
         'total_cards': total_cards,
+        'total_fds': total_fds,
+        'total_investments': total_investments,
         'total_categories': Category.objects.filter(user=request.user).count(),
         'monthly_income': monthly_income,
         'monthly_expense': monthly_expense,

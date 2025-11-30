@@ -35,7 +35,7 @@
                             Manage your fixed deposit investments
                         </p>
                     </div>
-                    <a href="{% url 'fd_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                    <a href="{% url 'fds:fd_create' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -82,11 +82,11 @@
                                         </svg>
                                     </button>
                                     <div id="menu-fd-{{ fd.id }}" class="hidden absolute right-0 mt-1 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
-                                        <a href="{% url 'fd_detail' fd.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View Details</a>
+                                        <a href="{% url 'fds:fd_detail' fd.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">View Details</a>
                                         {% if fd.status == 'active' %}
-                                        <a href="{% url 'fd_edit' fd.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
+                                        <a href="{% url 'fds:fd_edit' fd.pk %}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</a>
                                         {% endif %}
-                                        <a href="{% url 'fd_delete' fd.pk %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</a>
+                                        <a href="{% url 'fds:fd_delete' fd.pk %}" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">Delete</a>
                                     </div>
                                 </div>
                             </div>
@@ -143,7 +143,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
                         <p class="text-gray-500 dark:text-gray-400 mb-4">No fixed deposits yet. Create your first FD to start tracking!</p>
-                        <a href="{% url 'fd_create' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                        <a href="{% url 'fds:fd_create' %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
                             Add First Fixed Deposit
                         </a>
                     </div>

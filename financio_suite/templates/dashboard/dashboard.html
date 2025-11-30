@@ -23,21 +23,35 @@
                             <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Net Worth</p>
                             <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.net_worth|default:"0"|indian_format:0 }}</p>
                         </div>
-                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a] hover:bg-gray-200 dark:hover:bg-[#2f3548] transition-colors cursor-pointer" onclick="window.location.href='{% url 'account_list' %}'">
+                        <button onclick="openAccountsModal()" class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a] hover:bg-gray-200 dark:hover:bg-[#2f3548] transition-colors cursor-pointer text-left w-full">
                             <div class="flex items-center justify-between">
                                 <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Total Accounts</p>
                                 <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
                             </div>
-                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">
-                                {% if stats.total_banks > 0 or stats.total_cards > 0 %}
-                                    {{ stats.total_banks }} Bank{{ stats.total_banks|pluralize }} • {{ stats.total_cards }} Card{{ stats.total_cards|pluralize }}
-                                {% else %}
-                                    0
-                                {% endif %}
-                            </p>
-                        </div>
+                            <div class="flex flex-col">
+                                <div class="text-gray-900 dark:text-white tracking-light text-sm font-semibold leading-tight">
+                                    <div class="flex flex-col gap-1">
+                                        {% if stats.total_banks > 0 %}
+                                            <span>{{ stats.total_banks }} Bank{{ stats.total_banks|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_cards > 0 %}
+                                            <span>{{ stats.total_cards }} Card{{ stats.total_cards|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_fds > 0 %}
+                                            <span>{{ stats.total_fds }} FD{{ stats.total_fds|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_investments > 0 %}
+                                            <span>{{ stats.total_investments }} Investment{{ stats.total_investments|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_banks == 0 and stats.total_cards == 0 and stats.total_fds == 0 and stats.total_investments == 0 %}
+                                            <span>0</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
                         <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                             <p class="text-green-900 dark:text-green-300 text-sm md:text-base font-medium leading-normal">Income (MTD)</p>
                             <p class="text-green-900 dark:text-green-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.monthly_income|default:"0"|indian_format:0 }}</p>
@@ -177,6 +191,67 @@
     </div>
 </div>
 
+<!-- Accounts Navigation Modal -->
+<div id="accountsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <!-- Close Button -->
+        <button onclick="closeAccountsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Modal Header -->
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">View Accounts</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Choose which section you want to view</p>
+        
+        <!-- Navigation Options -->
+        <div class="space-y-3">
+            <!-- Accounts & Cards Option -->
+            <a href="{% url 'account_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏦
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Accounts & Cards</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Bank accounts and credit cards</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Fixed Deposits Option -->
+            <a href="{% url 'fds:fd_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏛️
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Fixed Deposits</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">View all fixed deposits</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Investments Option -->
+            <a href="{% url 'investments:investment_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    📈
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Investments</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Stocks, mutual funds, and more</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+
 <!-- Account Type Choice Modal -->
 <div id="accountTypeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
     <div class="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6 relative">
@@ -225,6 +300,16 @@
 </div>
 
 <script>
+function openAccountsModal() {
+    const modal = document.getElementById('accountsModal');
+    modal.classList.remove('hidden');
+}
+
+function closeAccountsModal() {
+    const modal = document.getElementById('accountsModal');
+    modal.classList.add('hidden');
+}
+
 function openAccountTypeModal() {
     const modal = document.getElementById('accountTypeModal');
     modal.classList.remove('hidden');
@@ -235,16 +320,23 @@ function closeAccountTypeModal() {
     modal.classList.add('hidden');
 }
 
-// Close modal when clicking outside
+// Close modals when clicking outside
+document.getElementById('accountsModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeAccountsModal();
+    }
+});
+
 document.getElementById('accountTypeModal').addEventListener('click', function(event) {
     if (event.target === this) {
         closeAccountTypeModal();
     }
 });
 
-// Close modal on Escape key
+// Close modals on Escape key
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
+        closeAccountsModal();
         closeAccountTypeModal();
     }
 });

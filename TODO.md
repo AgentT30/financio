@@ -63,9 +63,9 @@
 
 ## 🚧 In Progress
 
-- [ ] **Fixed Deposits - Phase 5: Dashboard Integration**
-  - Status: Phases 1-4, 6-7 complete, all 48 tests passing
-  - Next: Integrate FD maturity amounts into dashboard net worth calculation
+- [x] **Fixed Deposits - Phase 5: Dashboard Integration**
+  - Status: Phases 1-7 complete, all 48 tests passing
+  - Next: Investments module
 
 ## 📋 TODO - Priority Order
 
@@ -678,26 +678,45 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 
 ---
 
-### 4️⃣ Investments - MEDIUM PRIORITY
+### 4️⃣ Investments - MEDIUM PRIORITY - ✅ COMPLETED
 
-**Models First:**
+**Phase 1: Investment Models** - ✅ COMPLETED
 
-- [ ] Investment model (stock/mutual fund details)
-- [ ] Investment transaction model (buy/sell)
-- [ ] Portfolio holdings calculation
-- [ ] P&L calculation logic
-- [ ] Current value tracking
-- [ ] Create migrations for investment models
+- [x] Implement `Broker` model (user, name, broker_user_id, demat_account_number)
+- [x] Implement `Investment` model (stock/mutual fund details, linked to Broker)
+- [x] Implement `InvestmentTransaction` model (buy/sell, quantity, price, fees)
+- [x] Define logic for Portfolio holdings and P&L calculation (weighted average price)
+- [x] Implement current value tracking (manual update for now)
+- [x] Create migrations for investment models
 
-**Then UI (Desktop + Mobile Responsive):**
+**Phase 2: Investment UI** - ✅ COMPLETED
 
-- [ ] Portfolio overview page
-- [ ] Investment list with current values
-- [ ] Add investment form
-- [ ] Buy/Sell transaction form
-- [ ] Investment details page with transaction history
-- [ ] P&L reports (realized/unrealized)
-- [ ] Holdings summary
+- [x] Portfolio Overview (Total Value, Total P&L, Total Invested)
+- [x] Investment List (grouped by Broker, with summary stats)
+- [x] Investment Detail View (Transaction History, P&L, Quantity)
+- [x] Add/Edit Broker Forms
+- [x] Add/Edit Investment Forms
+- [x] Buy/Sell Transaction Forms
+- [x] "Back to Investments" navigation button
+
+**Phase 3: Dashboard Integration** - ✅ COMPLETED
+
+- [x] Add Portfolio Value to Net Worth (Bank + FD + Investments)
+- [x] Show Investment count in "Total Accounts" card
+- [x] Navigation updates (Header & Sidebar)
+
+**Phase 4: UI Refinements** - ✅ COMPLETED
+
+- [x] Unified "Smart Form" for Investment Creation & Transaction Addition
+- [x] Added "Transaction Type" (Buy/Sell) to unified form
+- [x] Added "Delete Asset" button to Investment Detail page
+- [x] Auto-delete investment when last transaction is deleted
+- [x] Added "Back to Investment List" button on Detail page
+- [x] Added helper text "Click on a stock to see transactions" in List view
+- [x] Form improvements:
+  - [x] Removed pre-filled 0 values for Price and Fees
+  - [x] Added "Today", "Yesterday", "Day before yesterday" date shortcuts
+  - [x] Enforced integer input for quantities
 
 ### 5️⃣ Fixed Deposits (FD) - ✅ COMPLETED
 
@@ -798,15 +817,15 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Fixed stats unpacking (stats dict → individual variables)
   - [x] Fixed invalid template filter (abs → removed)
 
-**Phase 5: Dashboard Integration** - ⏳ PENDING
+**Phase 5: Dashboard Integration** - ✅ COMPLETED
 
-- [ ] Update dashboard view (core/views.py)
-  - [ ] Query active FDs for user
-  - [ ] Sum maturity_amount for active FDs
-  - [ ] Add to net_worth total
-- [ ] Update dashboard template (optional)
-  - [ ] Add FD count to stats (if desired)
-  - [ ] Or keep existing "Total Accounts" card unchanged
+- [x] Update dashboard view (core/views.py)
+  - [x] Query active FDs for user
+  - [x] Sum maturity_amount for active FDs
+  - [x] Add to net_worth total
+- [x] Update dashboard template (optional)
+  - [x] Add FD count to stats (if desired)
+  - [x] Or keep existing "Total Accounts" card unchanged
 
 **Phase 6: Navigation & Polish** - ✅ COMPLETED
 

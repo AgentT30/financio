@@ -1,0 +1,98 @@
+{% extends 'base/app_base.html' %}
+
+{% block title %}{{ title }} | Financio{% endblock %}
+
+{% block app_content %}
+<div class="max-w-2xl mx-auto">
+    <div class="md:flex md:items-center md:justify-between mb-6">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 dark:text-white sm:text-3xl sm:truncate">{{ title }}</h2>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div class="p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="rounded-md bg-red-50 dark:bg-red-900/50 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800 dark:text-red-200">There were errors with your submission</h3>
+                                <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-red-500">*</span>
+                            {% endif %}
+                        </label>
+                        <div class="mt-1">
+                            {{ field }}
+                        </div>
+                        {% if field.name == 'purchase_date' or field.name == 'date' %}
+                            <div class="flex gap-2 mt-2">
+                                <button type="button" onclick="setDateOffset(2, '{{ field.id_for_label }}')" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                    Day Before Yesterday
+                                </button>
+                                <button type="button" onclick="setDateOffset(1, '{{ field.id_for_label }}')" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                    Yesterday
+                                </button>
+                                <button type="button" onclick="setDateOffset(0, '{{ field.id_for_label }}')" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                    Today
+                                </button>
+                            </div>
+                        {% endif %}
+                        {% if field.help_text %}
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <script>
+                    function setDateOffset(daysAgo, fieldId) {
+                        const dateField = document.getElementById(fieldId);
+                        if (dateField) {
+                            const date = new Date();
+                            date.setDate(date.getDate() - daysAgo);
+                            
+                            // Format as YYYY-MM-DD for input[type="date"]
+                            const year = date.getFullYear();
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const day = String(date.getDate()).padStart(2, '0');
+                            
+                            dateField.value = `${year}-${month}-${day}`;
+                        }
+                    }
+                </script>
+
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <a href="javascript:history.back()" class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

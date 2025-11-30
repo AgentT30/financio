@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'fds'
+
 urlpatterns = [
     path('', views.fd_list, name='fd_list'),
     path('create/', views.fd_create, name='fd_create'),

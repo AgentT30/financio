@@ -14,7 +14,7 @@
         <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
             <div class="max-w-2xl mx-auto">
                 <!-- Back Button -->
-                <a href="{% url 'fd_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                <a href="{% url 'fds:fd_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -78,7 +78,7 @@
                                 <button type="submit" class="flex items-center justify-center px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors">
                                     Delete Fixed Deposit
                                 </button>
-                                <a href="{% url 'fd_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
+                                <a href="{% url 'fds:fd_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
                                     Cancel
                                 </a>
                             </form>
