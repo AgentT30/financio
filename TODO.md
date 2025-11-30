@@ -1,6 +1,7 @@
 # Financio - Development TODO
 
 ## ✅ Completed
+
 - [x] Django project setup with all apps
 - [x] Database models: Categories (hierarchical, 3-level max)
 - [x] Database models: Accounts (6 types with encryption) - **LEGACY, TO BE REFACTORED**
@@ -61,6 +62,7 @@
 - [x] **Button Text Fix:** Create Account button now displays text properly
 
 ## 🚧 In Progress
+
 - [ ] **Fixed Deposits - Phase 5: Dashboard Integration**
   - Status: Phases 1-4, 6-7 complete, all 48 tests passing
   - Next: Integrate FD maturity amounts into dashboard net worth calculation
@@ -68,15 +70,18 @@
 ## 📋 TODO - Priority Order
 
 ### 🔥 Account Model Foundation - ✅ COMPLETED
+
 **Objective:** Create foundation for specialized account types
 
 **Phase 1: Preparation** ✅
+
 - [x] Create detailed refactoring plan
 - [x] Update FDD with specialized account structures
 - [x] Update SDD with new ERD and tables
 - [x] Document risks and mitigation strategies
 
 **Phase 2: Foundation Implementation** ✅
+
 - [x] Create BaseAccount abstract model in core/models.py
 - [x] Refactor Account → BankAccount (inherits BaseAccount)
 - [x] Refactor AccountBalance → BankAccountBalance
@@ -92,6 +97,7 @@
 - [x] Update dashboard to use BankAccount
 
 **Phase 3: Credit Cards Implementation** ✅ COMPLETED
+
 - [x] Implement CreditCard model in creditcards/ app
   - [x] Created CreditCard model inheriting from BaseAccount
   - [x] Added encrypted card_number and cvv fields (EncryptedCharField)
@@ -132,12 +138,14 @@
 See detailed breakdown below in "Credit Card Integration - Full System Integration" section
 
 **Phase 4: Future - Other Specialized Apps** 🔜
+
 - [ ] Implement DigitalWallet model in wallets/ app
 - [ ] Implement CashAccount model in cash/ app
 
 ---
 
 ### 1️⃣ Categories (CRUD) - ✅ COMPLETED
+
 - [x] Categories list/tree view (desktop + mobile responsive)
 - [x] Create category form
 - [x] Edit category
@@ -147,8 +155,8 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Seed default categories for new users
 - [ ] Category reassignment when deleting (for transactions - pending transaction model)
 
-
 ### 2️⃣ Accounts (CRUD) - ✅ COMPLETED
+
 - [x] Accounts list page (desktop + mobile responsive)
 - [x] Create new account form (dashboard button functional)
 - [x] Account type selection with icons
@@ -163,10 +171,12 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Shared header/sidebar navigation on all account pages
 - [x] Name field stored as-is (no automatic title case)
 
-### 3️⃣ Transactions & Ledger System - 🚧 IN PROGRESS
+### 3️⃣ Transactions & Ledger System - ✅ COMPLETED
+
 **CURRENT PHASE: Foundation - Models & Services**
 
 **Specifications:**
+
 - Transaction type: `income`/`expense` enum (user-friendly)
 - Payment methods: UPI, Card, Netbanking, Cash, Wallet, IMPS, NEFT, RTGS, Cheque, Other
 - Datetime storage: IST (via Django TIME_ZONE='Asia/Kolkata')
@@ -175,6 +185,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - Materialized balances: Atomic updates via BankAccountBalance
 
 **Phase 1A: Activity Logging Foundation** ✅ COMPLETED
+
 - [x] Create ActivityLog model (activity/models.py)
   - GenericForeignKey for tracking any model
   - JSON field for change tracking
@@ -188,6 +199,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Test: python manage.py makemigrations activity && migrate activity
 
 **Phase 1B: Ledger Models (Core Double-Entry)** ✅ COMPLETED
+
 - [x] Create ControlAccount model (ledger/models.py)
   - Income Control Account (synthetic ledger account)
   - Expense Control Account (synthetic ledger account)
@@ -204,7 +216,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Create LedgerService class (ledger/services.py)
   - create_simple_entry() for income/expense transactions
   - create_transfer_entry() for account transfers
-  - _update_account_balance() for atomic balance updates
+  - \_update_account_balance() for atomic balance updates
 - [x] Update ledger/admin.py with model admins
 - [x] Create management command: create_control_accounts.py
 - [x] Create migration for ledger app
@@ -213,6 +225,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Update schema.sql with new tables (activity_logs, control_accounts, journal_entries, postings)
 
 **Phase 1C: Transaction Model** ✅ COMPLETED
+
 - [x] Create Transaction model (transactions/models.py)
   - datetime_ist, transaction_type (income/expense), amount (positive)
   - GenericForeignKey to account (BankAccount, etc.)
@@ -234,6 +247,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Database constraint update: Consolidated IMPS/NEFT/RTGS payment methods
 
 **Phase 1D: Transaction Views & Templates** ✅ COMPLETED
+
 - [x] Create transaction_list view (transactions/views.py)
   - Filter by date range, account, category, type
   - Pagination (20 per page)
@@ -272,6 +286,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Capitalize category labels (remove "Type: " prefix)
 
 **Phase 1E: Transfers Implementation** ✅ COMPLETED
+
 - [x] Create Transfer model (transfers/models.py)
   - Links two accounts via GenericForeignKey
   - Amount, method_type, memo, datetime_ist
@@ -321,6 +336,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Fixed navigation links (header.html and sidebar.html)
 
 **Phase 1D+: Transaction Bug Fixes** ✅ COMPLETED
+
 - [x] Fixed Transaction model validation
   - Added user_id check in clean() method
   - Added skip_validation parameter to save()
@@ -344,6 +360,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] SQL patch commands added for restoring soft-deleted transactions
 
 **Phase 1F: Integration & Testing** ✅ COMPLETED
+
 - [x] Update dashboard view to show recent transactions
   - Added month-to-date income/expense calculations
   - Added recent transactions query (last 10)
@@ -374,43 +391,46 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - Category names displayed in capitalized format
 - [x] Make "Transfer Money" dashboard button functional
 - [x] Update schema.sql with all new tables
-- [ ] **Integration Testing:**
-  - [ ] Create income transaction → verify balance increase
-  - [ ] Create expense transaction → verify balance decrease
-  - [ ] Create transfer → verify both balances update
-  - [ ] Delete transaction → verify balance reverses correctly
-  - [ ] Delete transfer → verify both balances reverse correctly
-  - [ ] Verify journal entries sum to zero
-  - [ ] Verify activity logs created for all operations
-  - [ ] Test soft delete restoration via SQL patch
-  - [ ] Test category filtering in transaction form
-  - [ ] Test account filtering in transaction list
-  - [ ] Test date range filtering
-  - [ ] Test pagination with view parameter preservation
-  - [ ] Test tab switching between transactions/transfers
-  - [ ] Test form toggle buttons
-  - [ ] Test navigation links throughout app
-  - [ ] Test mobile responsiveness for all transaction/transfer pages
-  - [ ] Verify GenericForeignKey works with BankAccount
-  - [ ] Test validation: category type matches transaction type
-  - [ ] Test validation: amount > 0
-  - [ ] Test validation: from ≠ to for transfers
-  - [ ] Test edge cases: missing category, missing account
-  - [ ] Test concurrent balance updates (race conditions)
+- [x] **Integration Testing:**
+  - [x] Create income transaction → verify balance increase
+  - [x] Create expense transaction → verify balance decrease
+  - [x] Create transfer → verify both balances update
+  - [x] Delete transaction → verify balance reverses correctly
+  - [x] Delete transfer → verify both balances reverse correctly
+  - [x] Verify journal entries sum to zero
+  - [x] Verify activity logs created for all operations
+  - [x] Test soft delete restoration via SQL patch
+  - [x] Test category filtering in transaction form
+  - [x] Test account filtering in transaction list
+  - [x] Test date range filtering
+  - [x] Test pagination with view parameter preservation
+  - [x] Test tab switching between transactions/transfers
+  - [x] Test form toggle buttons
+  - [x] Test navigation links throughout app
+  - [x] Test mobile responsiveness for all transaction/transfer pages
+  - [x] Verify GenericForeignKey works with BankAccount
+  - [x] Test validation: category type matches transaction type
+  - [x] Test validation: amount > 0
+  - [x] Test validation: from ≠ to for transfers
+  - [x] Test edge cases: missing category, missing account
+  - [x] Test concurrent balance updates (race conditions)
 
-**Phase 1G: Documentation & Cleanup**
-- [ ] Update README.md with transaction features
-- [ ] Update FDD if needed
-- [ ] Update SDD if needed
-- [ ] Add inline code documentation
-- [ ] Test error handling and edge cases
+**Phase 1G: Documentation & Cleanup** ✅ COMPLETED
+
+- [x] Update README.md with transaction features
+- [x] Update FDD if needed
+- [x] Update SDD if needed
+- [x] Add inline code documentation
+- [x] Test error handling and edge cases
 
 ---
 
 ### 3️⃣B Credit Card Integration - Full System Integration
+
 **Objective:** Integrate credit cards throughout the application for complete functionality
 
 **Specifications:**
+
 - Credit cards appear in same dropdown as bank accounts
 - Emoji indicators for account types (🏦 Bank, 💳 Credit Card)
 - Bill payment (Bank → Credit Card) reduces credit card debt
@@ -418,6 +438,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - Combined "Accounts & Cards" page with separate sections
 
 **Phase 3A: Transaction & Transfer Integration** ✅ COMPLETED
+
 - [x] Created core/utils.py with helper functions
   - [x] get_all_accounts_with_emoji() - Returns banks + credit cards with emoji prefixes
   - [x] get_account_from_compound_value() - Extracts account from "id|modelname" format
@@ -442,14 +463,14 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] transfer_create: Already compatible with GenericFK from form
   - [x] No changes needed - form handles everything
 - [x] Update LedgerService (ledger/services.py)
-  - [x] _update_account_balance() now supports both BankAccount and CreditCard
+  - [x] \_update_account_balance() now supports both BankAccount and CreditCard
   - [x] Uses CreditCardBalance for credit cards (parallel to BankAccountBalance)
-  - [x] Account type detection via __class__.__name__
+  - [x] Account type detection via **class**.**name**
 - [x] Bug Fixes
   - [x] Fixed FieldError: Changed deleted_at to status='active' in core/utils.py
   - [x] Fixed transaction_edit: Corrected GenericFK field names (account_content_type/account_object_id)
   - [x] Fixed transaction_edit: Account field not populating in form (removed incorrect initial override)
-  - [x] Fixed transaction_edit: Missing arguments error in _update_account_balance()
+  - [x] Fixed transaction_edit: Missing arguments error in \_update_account_balance()
   - [x] Fixed transaction_edit: Reverse-and-recreate pattern with proper balance reversal
   - [x] Fixed transaction_edit: ControlAccount balance update error (skip ControlAccounts)
   - [x] Fixed transaction_edit: Protected foreign key error (unlink before delete)
@@ -471,6 +492,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Orphaned journal entry cleanup ✓
 
 **Phase 3B: Dashboard Integration** ✅ COMPLETED
+
 - [x] Update dashboard view (core/views.py)
   - [x] Updated Net Worth calculation for banks only (excludes credit card debt)
   - [x] Added status='active' filter for bank accounts
@@ -494,6 +516,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Applies across entire application automatically
 
 **Phase 3C: Navigation & Combined Accounts Page** ✅ COMPLETED
+
 - [x] Rename "Accounts" to "Accounts & Cards" in navigation
   - [x] Update header.html menu item
   - [x] Update sidebar.html menu item
@@ -521,6 +544,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Credit card URLs use direct paths (/creditcards/...)
 
 **Phase 3D: Account Detail Page Enhancement** ✅ COMPLETED
+
 - [x] Verify BankAccount detail page (accounts/account_detail.html)
   - [x] Ensure transfers to/from credit cards display correctly (GenericForeignKey filtering works)
   - [x] Test transaction tags with mixed account types (emoji indicators working via template tags)
@@ -535,6 +559,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Used consistent badge styling with blue for bank accounts, purple for credit cards
 
 **Phase 3E: Ledger Service Verification** ✅ COMPLETED
+
 - [x] Create comprehensive test plan (PHASE_3E_TEST_PLAN.md)
 - [x] Test LedgerService.create_simple_entry() with CreditCard
   - [x] Test 1.1: Expense on credit card (balance becomes more negative = debt increases)
@@ -544,7 +569,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Test 2.1: Bank → Credit Card (bank ↓, credit card debt ↓ = less negative)
   - [x] Test 2.2: Credit Card → Bank (credit card debt ↑ = more negative, bank ↑)
   - [x] Test 2.3: Credit Card → Credit Card (one debt ↓, other debt ↑)
-- [x] Verify LedgerService._update_account_balance() handles CreditCardBalance
+- [x] Verify LedgerService.\_update_account_balance() handles CreditCardBalance
   - [x] Test 3.1: Atomic updates with select_for_update() (race condition prevention)
   - [x] Test 3.2: Correct balance type selection (BankAccountBalance vs CreditCardBalance)
 - [x] Test edge cases
@@ -562,6 +587,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Test 5.2: Invalid account type handling
 
 **Phase 3F: Comprehensive Testing** ✅ COMPLETED
+
 - [x] Transaction Tests
   - [x] Create expense transaction on credit card
   - [x] Verify CreditCardBalance becomes more negative
@@ -602,6 +628,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Handles missing balance records gracefully (falls back to opening_balance)
 
 **Phase 3G: Documentation & Cleanup** ✅ COMPLETED
+
 - [x] Update FDD (docs/fdd/v1.md)
   - [x] Document credit card integration
   - [x] Update account selection specifications
@@ -652,7 +679,9 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 ---
 
 ### 4️⃣ Investments - MEDIUM PRIORITY
+
 **Models First:**
+
 - [ ] Investment model (stock/mutual fund details)
 - [ ] Investment transaction model (buy/sell)
 - [ ] Portfolio holdings calculation
@@ -661,6 +690,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Create migrations for investment models
 
 **Then UI (Desktop + Mobile Responsive):**
+
 - [ ] Portfolio overview page
 - [ ] Investment list with current values
 - [ ] Add investment form
@@ -670,9 +700,11 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Holdings summary
 
 ### 5️⃣ Fixed Deposits (FD) - ✅ COMPLETED
+
 **Objective:** Implement standalone FD tracking module (informational only, NO transaction/ledger integration)
 
 **Key Specifications:**
+
 - FDs are **standalone models** (do NOT inherit from BaseAccount)
 - FDs do **NOT appear** in transaction/transfer account dropdowns
 - Interest entered **manually** during FD creation (maturity_amount field)
@@ -681,6 +713,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - Status workflow: active → archived (via "Mark as Matured" button)
 
 **Phase 1: Models & Admin** - ✅ COMPLETED
+
 - [x] Create FixedDeposit model in fds/models.py
   - [x] Fields: user, name, institution, fd_number, principal_amount, interest_rate
   - [x] Fields: compounding_frequency, tenure_months, opened_on, maturity_date
@@ -695,6 +728,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Create and apply migrations
 
 **Phase 2: Forms & Validation** - ✅ COMPLETED
+
 - [x] Create FixedDepositForm in fds/forms.py
 - [x] All fields with TailwindCSS styling (dark mode)
 - [x] Date pickers for opened_on and maturity_date
@@ -707,6 +741,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Disabled editing for archived FDs
 
 **Phase 3: Views & URLs** - ✅ COMPLETED
+
 - [x] fd_list view (fds/views.py)
   - [x] List active + archived FDs
   - [x] Stats card: total FDs, total principal, total maturity amount (active only)
@@ -736,6 +771,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Register in main urls.py
 
 **Phase 4: Templates** - ✅ COMPLETED
+
 - [x] fd_list.html
   - [x] Responsive grid (3 columns desktop, 1 mobile)
   - [x] 3 stat cards (Total FDs, Total Principal, Total Maturity - active only)
@@ -763,6 +799,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [x] Fixed invalid template filter (abs → removed)
 
 **Phase 5: Dashboard Integration** - ⏳ PENDING
+
 - [ ] Update dashboard view (core/views.py)
   - [ ] Query active FDs for user
   - [ ] Sum maturity_amount for active FDs
@@ -772,6 +809,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - [ ] Or keep existing "Total Accounts" card unchanged
 
 **Phase 6: Navigation & Polish** - ✅ COMPLETED
+
 - [x] Add "Fixed Deposits" menu item to header/sidebar
   - [x] Links to /fds/
   - [x] Active state detection
@@ -783,6 +821,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Dashboard header/sidebar consistency fixed
 
 **Phase 7: Documentation & Cleanup** - ✅ COMPLETED
+
 - [x] Schema.sql updated with fixed_deposits table
 - [x] Comprehensive test plan created (48 test cases)
 - [x] All tests passing (docs/testing/FixedDeposits_Testing.md)
@@ -792,6 +831,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [x] Section 5 marked as completed
 
 **Testing Summary:**
+
 - ✅ 48/48 tests passed
 - ✅ All CRUD operations working
 - ✅ Form validation complete
@@ -802,7 +842,9 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - ✅ Ready for Phase 5 (Dashboard Integration)
 
 ### 6️⃣ Loans - MEDIUM PRIORITY
+
 **Models First:**
+
 - [ ] Loan model (principal, rate, tenure, EMI)
 - [ ] EMI calculation logic
 - [ ] Payment schedule generation
@@ -811,6 +853,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Create migrations for loan models
 
 **Then UI (Desktop + Mobile Responsive):**
+
 - [ ] Loan list page with EMI info
 - [ ] Create loan form
 - [ ] Edit loan details
@@ -822,12 +865,14 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 ## 📋 Additional Features - Low to Medium Priority
 
 ### Password Reset Completion
+
 - [ ] Password reset confirmation view
 - [ ] Password reset confirmation template
 - [ ] Token validation logic
 - [ ] Email configuration for production
 
 ### Dashboard Enhancements
+
 - [ ] Income vs Expense chart (last 6 months)
 - [ ] Spend by category pie/bar chart (MTD)
 - [ ] Date range filters
@@ -838,6 +883,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Upcoming EMI/FD maturity alerts
 
 ### Reports Module
+
 - [ ] Income vs Expense report with charts
 - [ ] Category-wise spending report
 - [ ] Account-wise balance sheet
@@ -847,6 +893,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] PDF/Excel export functionality
 
 ### Transfers Module
+
 - [ ] Enhance transfer functionality in transactions
 - [ ] Transfer history page
 - [ ] Recurring/scheduled transfers
@@ -855,6 +902,7 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 ## 📋 TODO - Low Priority
 
 ### Settings & Preferences
+
 - [ ] User profile page
 - [ ] Change password
 - [ ] Update email
@@ -863,12 +911,14 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Notification preferences
 
 ### Activity Log
+
 - [ ] Activity tracking model
 - [ ] Activity log page
 - [ ] User action logging
 - [ ] Login history
 
 ### Data Management
+
 - [ ] Import transactions (CSV)
 - [ ] Export all data
 - [ ] Backup functionality
@@ -884,21 +934,25 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
   - Note: Management command already exists at `ledger/management/commands/recalculate_balances.py`
 
 ### Mobile Responsiveness
+
 - [ ] Mobile-optimized navigation
 - [ ] Touch-friendly UI elements
 - [ ] Responsive tables
 - [ ] Mobile transaction entry
 
 ### Performance
+
 - [ ] Database query optimization
 - [ ] Add database indexes
 - [ ] Caching strategy
 - [ ] Lazy loading for large datasets
 
 ## 🐛 Known Issues
+
 - None currently
 
 ## 🔮 Future Enhancements
+
 - [ ] Budgeting module
 - [ ] Bill reminders
 - [ ] Recurring transactions
@@ -911,4 +965,5 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Telegram/Email notifications
 
 ---
+
 **Last Updated:** 25 November 2025
