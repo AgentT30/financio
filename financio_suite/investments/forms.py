@@ -94,6 +94,60 @@ class InvestmentTransactionForm(forms.ModelForm):
             }),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        transaction_type = cleaned_data.get('transaction_type')
+        quantity = cleaned_data.get('quantity')
+        transaction_date = cleaned_data.get('date')
+        price = cleaned_data.get('price_per_unit')
+        fees = cleaned_data.get('fees')
+        
+        # Validate price is not negative
+        if price is not None and price < 0:
+            self.add_error('price_per_unit', 'Price per unit cannot be negative.')
+        
+        # Validate fees is not negative
+        if fees is not None and fees < 0:
+            self.add_error('fees', 'Fees cannot be negative.')
+        
+        # Validate quantity is greater than zero
+        if quantity is not None and quantity <= 0:
+            self.add_error('quantity', 'Quantity must be greater than zero.')
+        
+        # Validate sell transactions when editing
+        if transaction_type == 'sell' and quantity and self.instance and self.instance.pk:
+            from decimal import Decimal
+            investment = self.instance.investment
+            
+            # Calculate holdings up to this transaction date, excluding this transaction
+            # This gives us the holdings available at the time of this transaction
+            transactions = investment.transactions.exclude(pk=self.instance.pk).filter(
+                date__lt=transaction_date
+            ).order_by('date', 'created_at')
+            
+            # Also include transactions on the same date that were created before this one
+            same_date_txns = investment.transactions.exclude(pk=self.instance.pk).filter(
+                date=transaction_date,
+                created_at__lt=self.instance.created_at
+            ).order_by('created_at')
+            
+            # Combine both querysets
+            from itertools import chain
+            all_prior_txns = list(chain(transactions, same_date_txns))
+            
+            total_quantity = Decimal('0')
+            for txn in all_prior_txns:
+                if txn.transaction_type == 'buy':
+                    total_quantity += txn.quantity
+                elif txn.transaction_type == 'sell':
+                    total_quantity -= txn.quantity
+            
+            # Check if the new sell quantity exceeds available holdings
+            if quantity > total_quantity:
+                self.add_error('quantity', f"Insufficient quantity. You own {total_quantity:.2f} units.")
+        
+        return cleaned_data
+
 class InvestmentCreationForm(InvestmentForm):
     """
     Form for creating an investment AND its initial buy transaction in one step.
@@ -159,6 +213,20 @@ class InvestmentCreationForm(InvestmentForm):
         name = cleaned_data.get('name')
         broker = cleaned_data.get('broker')
         quantity = cleaned_data.get('quantity')
+        price = cleaned_data.get('current_price')
+        fees = cleaned_data.get('fees')
+        
+        # Validate price is not negative
+        if price is not None and price < 0:
+            self.add_error('current_price', 'Price per unit cannot be negative.')
+        
+        # Validate fees is not negative
+        if fees is not None and fees < 0:
+            self.add_error('fees', 'Fees cannot be negative.')
+        
+        # Validate quantity is greater than zero
+        if quantity is not None and quantity <= 0:
+            self.add_error('quantity', 'Quantity must be greater than zero.')
 
         if transaction_type == 'sell':
             # Check if investment exists
@@ -172,8 +240,8 @@ class InvestmentCreationForm(InvestmentForm):
                 raise forms.ValidationError("Cannot sell an investment you do not own. Please check the name and broker.")
             
             # Check if enough quantity (simple check, model has more strict check but good to catch here)
-            if existing_investment.total_quantity < quantity:
-                 raise forms.ValidationError(f"Insufficient quantity. You own {existing_investment.total_quantity:.0f} units.")
+            if quantity and existing_investment.total_quantity < quantity:
+                 self.add_error('quantity', f"Insufficient quantity. You own {existing_investment.total_quantity:.2f} units.")
 
         return cleaned_data
 

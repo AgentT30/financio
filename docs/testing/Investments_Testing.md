@@ -216,7 +216,7 @@ Prepare the following test scenarios:
   - Holdings recalculated correctly
   - Average buy price updated
   - Total invested updated
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 5.2: Edit Sell Transaction
 
@@ -228,7 +228,7 @@ Prepare the following test scenarios:
   - Transaction updated successfully
   - Holdings recalculated (more units remain)
   - P&L calculations updated
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 5.3: Edit Sell Transaction - Validation
 
@@ -240,7 +240,7 @@ Prepare the following test scenarios:
   - Validation error displayed
   - Transaction NOT updated
   - Error message shows current holdings
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 5.4: Edit Transaction Date
 
@@ -251,7 +251,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Date updated successfully
   - Transaction list re-ordered by date
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -268,7 +268,7 @@ Prepare the following test scenarios:
   - Investment automatically deleted
   - Success message: "Transaction deleted. Investment '[name]' was also deleted as it had no remaining transactions."
   - Redirected to investment list
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 6.2: Delete All Transactions Sequentially
 
@@ -281,7 +281,7 @@ Prepare the following test scenarios:
   - After first two deletions: Investment still exists
   - After last deletion: Investment auto-deleted
   - Appropriate success messages
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -295,7 +295,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Validation error: "Price per unit cannot be negative"
   - Transaction NOT created
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 7.2: Negative Fees Validation
 
@@ -305,7 +305,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Validation error: "Fees cannot be negative"
   - Transaction NOT created
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 7.3: Zero Quantity Validation
 
@@ -315,7 +315,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Validation error: "Quantity must be greater than zero"
   - Transaction NOT created
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 7.4: Duplicate Investment Name (Same Broker)
 
@@ -327,7 +327,7 @@ Prepare the following test scenarios:
   - Transaction appended to existing investment
   - No duplicate investment created
   - Holdings updated correctly
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 7.5: Symbol Field Validation
 
@@ -337,7 +337,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Special characters accepted (or appropriate validation)
   - Long symbols handled appropriately
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 ---
 

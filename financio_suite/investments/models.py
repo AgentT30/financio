@@ -290,7 +290,7 @@ class InvestmentTransaction(models.Model):
     
     quantity = models.DecimalField(
         max_digits=18,
-        decimal_places=4,
+        decimal_places=2,
         help_text="Number of units bought/sold"
     )
     
@@ -361,13 +361,21 @@ class InvestmentTransaction(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        from decimal import Decimal, ROUND_HALF_UP
+        
+        # Round quantity to 2 decimal places (in case of legacy data with 4 decimals)
+        if self.quantity:
+            self.quantity = self.quantity.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
         # Calculate total amount
         if self.quantity and self.price_per_unit:
             base_amount = self.quantity * self.price_per_unit
             if self.transaction_type == 'buy':
-                self.total_amount = base_amount + (self.fees or 0)
+                total = base_amount + (self.fees or 0)
             else:
-                self.total_amount = base_amount - (self.fees or 0)
+                total = base_amount - (self.fees or 0)
+            # Round to 2 decimal places
+            self.total_amount = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         
         self.full_clean()
         super().save(*args, **kwargs)

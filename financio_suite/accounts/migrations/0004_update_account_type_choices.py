@@ -7,11 +7,11 @@ def migrate_account_types(apps, schema_editor):
     """
     Convert old capitalized account types to new lowercase values.
     Only migrates bank-related accounts (Savings).
-    Other types (Credit Card, Digital Wallet, Cash, Fixed Deposit, Loan Account) 
+    Other types (Credit Card, Digital Wallet, Cash, Fixed Deposit, Loan Account)
     will be handled when their respective apps are implemented.
     """
     BankAccount = apps.get_model('accounts', 'BankAccount')
-    
+
     # Mapping from old values to new values
     type_mapping = {
         'Savings': 'savings',
@@ -23,7 +23,7 @@ def migrate_account_types(apps, schema_editor):
         'Fixed Deposit': 'savings',
         'Loan Account': 'savings',
     }
-    
+
     for old_type, new_type in type_mapping.items():
         BankAccount.objects.filter(account_type=old_type).update(account_type=new_type)
 
@@ -31,7 +31,7 @@ def migrate_account_types(apps, schema_editor):
 def reverse_migrate_account_types(apps, schema_editor):
     """Reverse migration - convert back to old capitalized values"""
     BankAccount = apps.get_model('accounts', 'BankAccount')
-    
+
     # Reverse mapping
     type_mapping = {
         'savings': 'Savings',
@@ -39,7 +39,7 @@ def reverse_migrate_account_types(apps, schema_editor):
         'current': 'Savings',
         'salary': 'Savings',
     }
-    
+
     for new_type, old_type in type_mapping.items():
         BankAccount.objects.filter(account_type=new_type).update(account_type=old_type)
 
