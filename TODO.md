@@ -881,6 +881,46 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Prepayment/foreclosure handling
 - [ ] Outstanding balance display
 
+### 7️⃣ Investment Module - Security & Permissions Testing
+
+**Objective:** Verify user isolation and access control for the Investments module
+
+**Test Cases (from docs/testing/Investments_Testing.md - Section 10):**
+
+- [ ] **Test 10.1: User Isolation - Investments**
+
+  - Login as User A, create investment
+  - Logout, login as User B
+  - Try to access User A's investment URL directly
+  - Expected: 404 or 403 error, User B cannot view User A's investment
+
+- [ ] **Test 10.2: User Isolation - Brokers**
+
+  - Login as User A, create broker
+  - Logout, login as User B
+  - Try to access User A's broker URL directly
+  - Expected: 404 or 403 error, User B cannot view/edit User A's broker
+
+- [ ] **Test 10.3: User Isolation - Transactions**
+
+  - Login as User A, create transaction
+  - Logout, login as User B
+  - Try to edit/delete User A's transaction URL directly
+  - Expected: 404 or 403 error, User B cannot modify User A's transaction
+
+- [ ] **Test 10.4: Unauthorized Access**
+  - Logout (not authenticated)
+  - Try to access investment list, broker list, etc.
+  - Expected: Redirect to login page, Cannot access any investment pages
+
+**Priority:** Medium (security is important but basic @login_required decorators should already provide protection)
+
+**Notes:**
+
+- All views already use @login_required decorator
+- All queries filter by request.user
+- Need to verify with actual multi-user testing
+
 ## 📋 Additional Features - Low to Medium Priority
 
 ### Password Reset Completion

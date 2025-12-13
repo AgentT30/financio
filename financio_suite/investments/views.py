@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, F
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from .models import Investment, InvestmentTransaction, Broker
 from .forms import InvestmentForm, InvestmentTransactionForm, BrokerForm, InvestmentCreationForm
 from activity.utils import log_activity
@@ -30,6 +31,16 @@ def broker_archive(request, pk):
     broker = get_object_or_404(Broker, pk=pk, user=request.user)
     
     if request.method == 'POST':
+        # Check if broker has any active investments
+        active_investments_count = Investment.objects.filter(broker=broker, status='active').count()
+        
+        if active_investments_count > 0:
+            messages.error(
+                request,
+                f"Cannot archive broker '{broker.name}' because it has {active_investments_count} active investment(s). Please archive all investments first."
+            )
+            return redirect('investments:broker_list')
+        
         broker.status = 'archived'
         broker.save()
         log_activity(request.user, 'archived', broker, request=request)
@@ -37,6 +48,21 @@ def broker_archive(request, pk):
         return redirect('investments:broker_list')
         
     return render(request, 'investments/broker_confirm_archive.html', {'broker': broker})
+
+@login_required
+def broker_unarchive(request, pk):
+    """Unarchive a broker."""
+    broker = get_object_or_404(Broker, pk=pk, user=request.user, status='archived')
+    
+    if request.method == 'POST':
+        broker.status = 'active'
+        broker.save()
+        log_activity(request.user, 'unarchived', broker, request=request)
+        messages.success(request, f"Broker '{broker.name}' unarchived successfully.")
+        return redirect('investments:broker_list')
+        
+    return render(request, 'investments/broker_confirm_unarchive.html', {'broker': broker})
+
 
 @login_required
 def broker_create(request):
@@ -84,8 +110,15 @@ def broker_delete(request, pk):
             log_activity(request.user, 'deleted', broker, request=request)
             broker.delete()
             messages.success(request, f"Broker '{name}' deleted successfully.")
+        except ProtectedError:
+            # Get the count of linked investments
+            linked_count = Investment.objects.filter(broker=broker).count()
+            messages.error(
+                request,
+                f"Cannot delete broker '{broker.name}' because it has {linked_count} linked investment(s). Please delete or move these investments first."
+            )
         except Exception as e:
-            messages.error(request, f"Cannot delete broker: {str(e)}")
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
             
         return redirect('investments:broker_list')
         
@@ -102,10 +135,27 @@ def investment_list(request):
     List all investments, grouped by broker or flat list.
     Shows summary stats: Total Invested, Current Value, P&L.
     """
-    investments = Investment.objects.filter(
-        user=request.user, 
-        status='active'
-    ).select_related('broker').order_by('broker__name', 'name')
+    # Check if user wants to see archived investments
+    show_archived = request.GET.get('show_archived', 'false').lower() == 'true'
+    
+    # Check if user wants to filter by broker
+    broker_filter = request.GET.get('broker', '')
+    
+    # Filter investments based on status
+    if show_archived:
+        investments = Investment.objects.filter(
+            user=request.user, 
+            status='archived'
+        ).select_related('broker').order_by('broker__name', 'name')
+    else:
+        investments = Investment.objects.filter(
+            user=request.user, 
+            status='active'
+        ).select_related('broker').order_by('broker__name', 'name')
+    
+    # Apply broker filter if specified
+    if broker_filter:
+        investments = investments.filter(broker_id=broker_filter)
     
     # Calculate summary stats
     total_invested = sum(inv.total_invested for inv in investments)
@@ -122,6 +172,12 @@ def investment_list(request):
         
     # Check if user has any brokers
     has_brokers = Broker.objects.filter(user=request.user).exists()
+    
+    # Get all brokers for filter dropdown (only active brokers unless showing archived investments)
+    if show_archived:
+        all_brokers = Broker.objects.filter(user=request.user).order_by('name')
+    else:
+        all_brokers = Broker.objects.filter(user=request.user, status='active').order_by('name')
 
     context = {
         'investments_by_broker': investments_by_broker,
@@ -129,6 +185,9 @@ def investment_list(request):
         'total_current_value': total_current_value,
         'total_pnl': total_pnl,
         'has_brokers': has_brokers,
+        'show_archived': show_archived,
+        'all_brokers': all_brokers,
+        'selected_broker': broker_filter,
     }
     return render(request, 'investments/investment_list.html', context)
 

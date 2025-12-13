@@ -12,7 +12,9 @@ urlpatterns = [
     path('brokers/add/', views.broker_create, name='broker_create'),
     path('brokers/<int:pk>/edit/', views.broker_edit, name='broker_edit'),
     path('brokers/<int:pk>/archive/', views.broker_archive, name='broker_archive'),
+    path('brokers/<int:pk>/unarchive/', views.broker_unarchive, name='broker_unarchive'),
     path('brokers/<int:pk>/delete/', views.broker_delete, name='broker_delete'),
+
     
     # Investment Management
     path('add/', views.investment_create, name='investment_create'),

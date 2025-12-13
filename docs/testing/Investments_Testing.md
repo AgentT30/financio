@@ -343,36 +343,45 @@ Prepare the following test scenarios:
 
 ### 8. Investment Status Management
 
-#### Test 8.1: Change Investment Status to Sold
+#### Test 8.1: Change Investment Status to Archived
 
 - **Action:**
   1. Edit an investment
-  2. Change status from "Active" to "Sold"
+  2. Change status from "Active" to "Archived"
   3. Submit
 - **Expected:**
   - Status updated successfully
-  - Investment still visible in list (or moved to separate section)
-- **Status:** ☐ Pass ☐ Fail
+  - Investment no longer visible in active list
+  - Investment visible when "Show Archived" toggle is clicked
+- **Status:** [x] Pass ☐ Fail
 
-#### Test 8.2: Change Investment Status to Archived
+#### Test 8.2: Unarchive Investment
 
 - **Action:**
-  1. Edit an investment
-  2. Change status to "Archived"
-  3. Submit
+  1. Archive an investment (Test 8.1)
+  2. Click "Show Archived" toggle
+  3. Edit the archived investment
+  4. Change status back to "Active"
+  5. Submit
 - **Expected:**
   - Status updated successfully
-  - Investment behavior changes appropriately
-- **Status:** ☐ Pass ☐ Fail
+  - Investment no longer visible in archived list
+  - Investment visible in active list (click "Show Active" to verify)
+- **Status:** [x] Pass ☐ Fail
 
-#### Test 8.3: Filter by Investment Status
+#### Test 8.3: Toggle Between Active and Archived Investments
 
 - **Action:**
-  1. Create investments with different statuses
-  2. Apply status filter (if available)
+  1. Create at least 2 active investments and 1 archived investment
+  2. On investment list page, click "Show Archived" button
+  3. Verify archived investments are shown
+  4. Click "Show Active" button
+  5. Verify active investments are shown
 - **Expected:**
+  - Toggle button switches between "Show Archived" and "Show Active"
   - Only investments with selected status shown
-- **Status:** ☐ Pass ☐ Fail
+  - Summary stats (Total Invested, Current Value, P&L) update based on visible investments
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -386,28 +395,59 @@ Prepare the following test scenarios:
 - **Expected:**
   - Warning message or prevention
   - OR investments also deleted (document behavior)
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 9.2: Archive Broker with Active Investments
 
 - **Action:**
-  1. Archive a broker that has active investments
-  2. Check investment list
+  1. Create a broker with active investments
+  2. Try to archive the broker
+- **Expected:**
+  - Error message: "Cannot archive broker '[name]' because it has X active investment(s). Please archive all investments first."
+  - Broker remains active
+  - User must archive all investments before archiving the broker
+- **Status:** [x] Pass ☐ Fail
+
+#### Test 9.2.1: Archive Broker After Archiving Investments
+
+- **Action:**
+  1. Archive all investments linked to a broker
+  2. Archive the broker
+  3. Verify broker is in archived list
 - **Expected:**
   - Broker archived successfully
-  - Investments still accessible
+  - Broker appears in "Archived Brokers" section
   - Archived broker not available for new investments
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
+
+#### Test 9.2.2: Unarchive Broker
+
+- **Action:**
+  1. Archive a broker (with no active investments)
+  2. Click "Unarchive" button on the archived broker
+  3. Confirm unarchive action
+- **Expected:**
+  - Broker moved back to "Active Brokers" section
+  - Success message displayed
+  - Broker available for new investments again
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 9.3: Filter Investments by Broker
 
 - **Action:**
   1. Create investments across multiple brokers
-  2. View investment list grouped by broker
+  2. On investment list page, use the "Filter by Broker" dropdown
+  3. Select a specific broker from the dropdown
+  4. Verify only that broker's investments are shown
+  5. Select "All Brokers" to show all investments again
 - **Expected:**
-  - Investments correctly grouped
-  - Each broker section shows correct investments
-- **Status:** ☐ Pass ☐ Fail
+  - Dropdown shows all active brokers
+  - When a broker is selected, only investments from that broker are displayed
+  - Summary stats update to reflect only the filtered investments
+  - "Clear filter" link appears when a broker is selected
+  - Investments correctly grouped by broker (even when filtered to one broker)
+  - Filter works correctly with both active and archived investments
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -491,7 +531,7 @@ Prepare the following test scenarios:
   - After sell all: Holdings = 0, Invested = 0
   - After new buy: Holdings = 5, Avg Price = ₹150
   - Previous average price does NOT affect new calculation
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 11.4: Multiple Sells to Zero
 
@@ -504,7 +544,7 @@ Prepare the following test scenarios:
   - After each sell: Holdings decrease correctly
   - After final sell: Holdings = 0, Invested = 0
   - No negative values
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 11.5: Fees Impact on Average Price
 
@@ -515,7 +555,7 @@ Prepare the following test scenarios:
   - Total Cost = (10 \* 100) + 50 = ₹1,050
   - Average Price = ₹1,050 / 10 = ₹105
   - Fees correctly included in cost basis
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 11.6: Negative P&L Scenario
 
@@ -527,7 +567,7 @@ Prepare the following test scenarios:
   - Total Invested: ₹5,000
   - Unrealized P&L: -₹2,000 (negative, displayed in red)
   - P&L Percentage: -40%
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 11.7: Proportional Cost Removal on Sell
 
@@ -540,7 +580,7 @@ Prepare the following test scenarios:
   - Cost removed = 10 \* ₹150 = ₹1,500
   - Remaining: 10 units, ₹1,500 invested
   - Average remains ₹150
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -574,7 +614,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Current date populated in field
   - Date matches system date
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 13.2: Date Shortcut - Yesterday
 
@@ -583,7 +623,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Yesterday's date populated
   - Date = Today - 1 day
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 13.3: Date Shortcut - Day Before Yesterday
 
@@ -591,7 +631,7 @@ Prepare the following test scenarios:
   1. Click "Day before yesterday" button
 - **Expected:**
   - Date = Today - 2 days
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 #### Test 13.4: Pre-filled Symbol Field
 
@@ -601,7 +641,7 @@ Prepare the following test scenarios:
 - **Expected:**
   - Symbol field pre-filled with investment symbol
   - Name and Broker also pre-filled
-- **Status:** ☐ Pass ☐ Fail
+- **Status:** [x] Pass ☐ Fail
 
 ---
 
@@ -634,23 +674,22 @@ Prepare the following test scenarios:
 
 ## Test Results Summary
 
-| Category                | Total Tests | Passed | Failed | Pending |
-| ----------------------- | ----------- | ------ | ------ | ------- |
-| Navigation              | 2           | 2      | 0      | 0       |
-| Broker Mgmt             | 4           | 4      | 0      | 0       |
-| Investment Mgmt         | 3           | 3      | 0      | 0       |
-| Transactions (Buy/Sell) | 3           | 3      | 0      | 0       |
-| Transaction Editing     | 4           | 0      | 0      | 4       |
-| Auto-Delete Investment  | 2           | 0      | 0      | 2       |
-| Form Validation         | 5           | 0      | 0      | 5       |
-| Investment Status       | 3           | 0      | 0      | 3       |
-| Broker-Investment Links | 3           | 0      | 0      | 3       |
-| Security & Permissions  | 4           | 0      | 0      | 4       |
-| Calculations            | 9           | 2      | 0      | 7       |
-| Dashboard               | 2           | 2      | 0      | 0       |
-| UI Features & Shortcuts | 4           | 0      | 0      | 4       |
-| UI/UX & Edge Cases      | 3           | 3      | 0      | 0       |
-| **TOTAL**               | **51**      | **19** | **0**  | **32**  |
+| Category | Total Tests | Passed | Failed | Pending |\n| ----------------------- | ----------- | ------ | ------ | ------- |
+| Navigation | 2 | 2 | 0 | 0 |
+| Broker Mgmt | 4 | 4 | 0 | 0 |
+| Investment Mgmt | 3 | 3 | 0 | 0 |
+| Transactions (Buy/Sell) | 3 | 3 | 0 | 0 |
+| Transaction Editing | 4 | 4 | 0 | 0 |
+| Auto-Delete Investment | 2 | 2 | 0 | 0 |
+| Form Validation | 5 | 5 | 0 | 0 |
+| Investment Status | 5 | 5 | 0 | 0 |
+| Broker-Investment Links | 5 | 5 | 0 | 0 |
+| Security & Permissions | 4 | 0 | 0 | 4 |
+| Calculations | 7 | 7 | 0 | 0 |
+| Dashboard | 2 | 2 | 0 | 0 |
+| UI Features & Shortcuts | 4 | 4 | 0 | 0 |
+| UI/UX & Edge Cases | 3 | 3 | 0 | 0 |
+| **TOTAL** | **53** | **49** | **0** | **4** |
 
 ---
 
@@ -664,17 +703,17 @@ Prepare the following test scenarios:
 
 ## Post-Testing Checklist
 
-- [ ] All critical flows verified (CRUD operations)
-- [ ] Transaction editing thoroughly tested
-- [ ] Auto-delete investment feature verified
-- [ ] Form validation edge cases tested
-- [ ] Security & user isolation verified
-- [ ] Calculations verified against manual math
-- [ ] Dashboard numbers match investment totals
-- [ ] All date shortcuts working
-- [ ] Broker-investment relationships tested
-- [ ] Investment status management verified
-- [ ] Ready for release
+- [x] All critical flows verified (CRUD operations)
+- [x] Transaction editing thoroughly tested
+- [x] Auto-delete investment feature verified
+- [x] Form validation edge cases tested
+- [ ] Security & user isolation verified (Pending - documented in TODO.md)
+- [x] Calculations verified against manual math
+- [x] Dashboard numbers match investment totals
+- [x] All date shortcuts working
+- [x] Broker-investment relationships tested
+- [x] Investment status management verified
+- [ ] Ready for release (Pending security testing)
 
 ---
 
