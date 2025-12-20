@@ -1,7 +1,7 @@
-version: '3'
 services:
-  db:
+  financio-db:
     image: postgres:16-alpine
+    container_name: financio-db
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
@@ -15,15 +15,20 @@ services:
     build: 
       context: .
       dockerfile: ./dockerfiles/webapp/Dockerfile
+    container_name: financio-webapp
     ports:
-      - 8000:8000
+      - 8013:8000
   
     volumes:
       - ./financio_suite:/financio
-      
+    environment:
+      - DB_HOST=financio-db
+      - DB_PORT=5432
+      - DB_NAME=financio
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
     depends_on:
-      - db
-    # command: sudo ./run_web.sh
+      - financio-db
     command: 
       - sh 
       - -c
