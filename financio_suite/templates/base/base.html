@@ -49,11 +49,46 @@
         input[type="checkbox"]:checked {
             background-image: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(255,255,255)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
         }
+
+        @keyframes slide-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in {
+            animation: slide-in 0.3s ease-out forwards;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
+    <!-- Global Messages -->
+    {% if messages %}
+    <div class="fixed top-20 right-4 z-[200] flex flex-col gap-3 max-w-md w-full pointer-events-none">
+        {% for message in messages %}
+        <div class="pointer-events-auto rounded-xl shadow-2xl border p-4 flex items-start gap-3 animate-slide-in
+            {% if message.tags == 'success' %}
+                bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200
+            {% elif message.tags == 'error' %}
+                bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200
+            {% elif message.tags == 'info' %}
+                bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200
+            {% else %}
+                bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200
+            {% endif %}">
+            <div class="flex-1">
+                <p class="text-sm font-medium">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-current opacity-50 hover:opacity-100 transition-opacity">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% block content %}{% endblock %}
     
     <!-- Theme Toggle Script -->
@@ -77,6 +112,23 @@
                 localStorage.setItem('theme', 'dark');
             }
         }
+    </script>
+
+    <script>
+        // Auto-dismiss messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.animate-slide-in');
+            messages.forEach(msg => {
+                setTimeout(() => {
+                    if (msg && msg.parentElement) {
+                        msg.style.opacity = '0';
+                        msg.style.transform = 'translateX(100%)';
+                        msg.style.transition = 'all 0.3s ease-in';
+                        setTimeout(() => msg.remove(), 300);
+                    }
+                }, 5000);
+            });
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

@@ -60,6 +60,7 @@
   - [x] Updated all account pages to use shared navigation
   - [x] Consistent header and sidebar across Dashboard, Accounts, Categories
 - [x] **Button Text Fix:** Create Account button now displays text properly
+- [x] **Recovery Token System:** Implemented secure token-based password reset (no SMTP required)
 
 ## 🚧 In Progress
 
@@ -923,12 +924,13 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 
 ## 📋 Additional Features - Low to Medium Priority
 
-### Password Reset Completion
+### Recovery Token System ✅
 
-- [ ] Password reset confirmation view
-- [ ] Password reset confirmation template
-- [ ] Token validation logic
-- [ ] Email configuration for production
+- [x] UserRecovery model for hashed token storage
+- [x] Token generation during signup
+- [x] Signup success page with token display & download
+- [x] Recovery-based password reset form and view
+- [x] Removal of legacy email-based reset flow
 
 ### Dashboard Enhancements
 
@@ -962,8 +964,8 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 
 ### Settings & Preferences
 
-- [ ] User profile page
-- [ ] Change password
+- [x] User profile page (Basic implementation)
+- [x] Change password
 - [ ] Update email
 - [ ] Currency settings
 - [ ] Date format settings
@@ -982,14 +984,14 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 - [ ] Export all data
 - [ ] Backup functionality
 - [ ] Data cleanup utilities
-- [ ] **Balance Recalculation UI** (Admin/Settings page)
-  - [ ] Create admin/settings page for balance management
-  - [ ] Add "Recalculate Balances" button with confirmation modal
-  - [ ] Show dry-run preview before applying changes
-  - [ ] Display before/after balance comparison
-  - [ ] Option to cleanup orphaned journal entries
-  - [ ] Activity logging for balance recalculations
-  - [ ] Success/error feedback messages
+- [x] **Balance Recalculation UI** (Admin/Settings page)
+  - [x] Create admin/settings page for balance management
+  - [x] Add "Recalculate Balances" button with confirmation modal
+  - [x] Show dry-run preview before applying changes (Handled via service results)
+  - [x] Display before/after balance comparison (Handled via messages)
+  - [x] Option to cleanup orphaned journal entries
+  - [x] Activity logging for balance recalculations (Handled via service)
+  - [x] Success/error feedback messages
   - Note: Management command already exists at `ledger/management/commands/recalculate_balances.py`
 
 ### Mobile Responsiveness
@@ -1025,4 +1027,4 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 
 ---
 
-**Last Updated:** 25 November 2025
+**Last Updated:** 20 December 2025

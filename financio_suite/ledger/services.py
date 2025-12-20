@@ -3,8 +3,10 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from .models import JournalEntry, Posting, ControlAccount
-from accounts.models import BankAccountBalance
-from creditcards.models import CreditCardBalance
+from accounts.models import BankAccount, BankAccountBalance
+from creditcards.models import CreditCard, CreditCardBalance
+from transactions.models import Transaction
+from transfers.models import Transfer
 
 
 class LedgerService:
@@ -321,3 +323,116 @@ class LedgerService:
             raise NotImplementedError(
                 f"Balance updates not implemented for {account_type}"
             )
+    @staticmethod
+    @transaction.atomic
+    def recalculate_user_balances(user, cleanup_orphans=False):
+        """
+        Recalculate all account balances for a specific user from ledger postings.
+        Ported from the recalculate_balances management command.
+
+        Returns:
+            dict: Summary of changes made
+        """
+        results = {
+            'banks_fixed': 0,
+            'cards_fixed': 0,
+            'orphans_deleted': 0,
+            'details': []
+        }
+
+        # 1. Cleanup orphaned journal entries for this user
+        if cleanup_orphans:
+            linked_journal_ids = set()
+            linked_journal_ids.update(
+                Transaction.objects.filter(user=user).exclude(journal_entry__isnull=True)
+                .values_list('journal_entry_id', flat=True)
+            )
+            linked_journal_ids.update(
+                Transfer.objects.filter(user=user).exclude(journal_entry__isnull=True)
+                .values_list('journal_entry_id', flat=True)
+            )
+
+            orphaned_entries = JournalEntry.objects.filter(user=user).exclude(id__in=linked_journal_ids)
+            results['orphans_deleted'] = orphaned_entries.count()
+            orphaned_entries.delete()
+
+        # 2. Get all active journal entries for this user
+        active_journal_ids = set()
+        active_journal_ids.update(
+            Transaction.objects.filter(user=user, deleted_at__isnull=True)
+            .exclude(journal_entry__isnull=True)
+            .values_list('journal_entry_id', flat=True)
+        )
+        active_journal_ids.update(
+            Transfer.objects.filter(user=user, deleted_at__isnull=True)
+            .exclude(journal_entry__isnull=True)
+            .values_list('journal_entry_id', flat=True)
+        )
+
+        # 3. Process Bank Accounts
+        bank_content_type = ContentType.objects.get_for_model(BankAccount)
+        for bank_account in BankAccount.objects.filter(user=user, status='active'):
+            postings = Posting.objects.filter(
+                account_content_type=bank_content_type,
+                account_object_id=bank_account.id,
+                journal_entry_id__in=active_journal_ids
+            )
+
+            total_from_postings = sum(
+                p.amount for p in postings
+            ) or Decimal('0.00')
+
+            expected_balance = bank_account.opening_balance + total_from_postings
+
+            balance_record, created = BankAccountBalance.objects.get_or_create(
+                account=bank_account,
+                defaults={'balance_amount': bank_account.opening_balance}
+            )
+
+            if balance_record.balance_amount != expected_balance:
+                old_balance = balance_record.balance_amount
+                balance_record.balance_amount = expected_balance
+                last_posting = postings.order_by('-id').first()
+                if last_posting:
+                    balance_record.last_posting_id = last_posting.id
+                balance_record.save()
+
+                results['banks_fixed'] += 1
+                results['details'].append(
+                    f"Fixed Bank '{bank_account.name}': ₹{old_balance:,.2f} → ₹{expected_balance:,.2f}"
+                )
+
+        # 4. Process Credit Cards
+        card_content_type = ContentType.objects.get_for_model(CreditCard)
+        for credit_card in CreditCard.objects.filter(user=user, status='active'):
+            postings = Posting.objects.filter(
+                account_content_type=card_content_type,
+                account_object_id=credit_card.id,
+                journal_entry_id__in=active_journal_ids
+            )
+
+            total_from_postings = sum(
+                p.amount for p in postings
+            ) or Decimal('0.00')
+
+            expected_balance = credit_card.opening_balance + total_from_postings
+
+            balance_record, created = CreditCardBalance.objects.get_or_create(
+                account=credit_card,
+                defaults={'balance_amount': credit_card.opening_balance}
+            )
+
+            if balance_record.balance_amount != expected_balance:
+                old_balance = balance_record.balance_amount
+                balance_record.balance_amount = expected_balance
+                last_posting = postings.order_by('-id').first()
+                if last_posting:
+                    balance_record.last_posting_id = last_posting.id
+                balance_record.save()
+
+                results['cards_fixed'] += 1
+                results['details'].append(
+                    f"Fixed Card '{credit_card.name}': ₹{old_balance:,.2f} → ₹{expected_balance:,.2f}"
+                )
+
+        return results

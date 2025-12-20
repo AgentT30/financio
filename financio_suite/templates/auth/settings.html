@@ -1,0 +1,267 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Settings - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-gray-900 dark:text-white text-xl md:text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Settings</h2>
+                
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Profile Section -->
+                    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Profile Information</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Manage your account details and email address.</p>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                                    <input type="text" value="{{ user.username }}" disabled class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
+                                    <input type="email" value="{{ user.email }}" disabled class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Security</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Manage your password and security preferences.</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Password</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Update your account password</p>
+                                </div>
+                                <a href="{% url 'password_change' %}" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors">
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Section -->
+                    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Preferences</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Customize your experience with Financio.</p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Currency</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Default currency for all accounts</p>
+                                </div>
+                                <select disabled class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1 text-sm text-gray-500 dark:text-gray-400 cursor-not-allowed">
+                                    <option selected>INR (₹)</option>
+                                    <option>USD ($)</option>
+                                    <option>EUR (€)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Theme</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
+                                </div>
+                                <button onclick="toggleTheme()" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors">
+                                    Toggle Theme
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Management Section -->
+                    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Data Management</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Maintain and verify your financial data integrity.</p>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Recalculate Balances</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Rebuild account balances from transaction history</p>
+                                </div>
+                                <button onclick="openRecalculateModal()" class="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors">
+                                    Run Recalculation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone Section -->
+                    <div class="bg-white dark:bg-dark-surface rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white text-red-600 dark:text-red-400">Danger Zone</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Irreversible actions for your account.</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Delete Account</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Permanently delete your account and all data</p>
+                                </div>
+                                <button onclick="openDeleteModal()" class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+                                    Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recalculate Balances Confirmation Modal -->
+<div id="recalculateModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-xl shadow-2xl max-w-md w-full p-6 relative border border-gray-200 dark:border-gray-800">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mb-4 mx-auto">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white text-center mb-2">Recalculate Balances?</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+            This will re-scan all your transactions and transfers to ensure your account balances are 100% accurate. This is safe and recommended if you notice any discrepancies.
+        </p>
+        
+        <form action="{% url 'recalculate_balances' %}" method="post">
+            {% csrf_token %}
+            <div class="mb-6">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" name="cleanup_orphans" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Cleanup orphaned data (Advanced)</span>
+                </label>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1 ml-7">Deletes internal records not linked to any transaction.</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="submit" class="flex-1 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-bold transition-colors">
+                    Start Recalculation
+                </button>
+                <button type="button" onclick="closeRecalculateModal()" class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-bold transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Account Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-xl shadow-2xl max-w-md w-full p-6 relative border border-gray-200 dark:border-gray-800">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mb-4 mx-auto">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white text-center mb-2">Delete Account?</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+            This action is irreversible. All your data, including accounts, transactions, and investments, will be permanently deleted.
+        </p>
+        
+        <div class="mb-6">
+            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Type the following to confirm:</p>
+            <p class="text-sm font-mono bg-gray-100 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-800 text-center text-red-600 dark:text-red-400 mb-3 select-none">Yes I want to delete my account</p>
+            <input 
+                type="text" 
+                id="deleteConfirmInput" 
+                placeholder="Type the phrase here..."
+                class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                oninput="validateDeleteInput()"
+            >
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+            <form action="{% url 'account_delete' %}" method="post" class="flex-1">
+                {% csrf_token %}
+                <input type="hidden" name="confirmation_text" id="hiddenConfirmInput">
+                <button 
+                    type="submit" 
+                    id="finalDeleteBtn"
+                    disabled
+                    class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-bold transition-colors"
+                >
+                    Yes, Delete Everything
+                </button>
+            </form>
+            <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-bold transition-colors">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRecalculateModal() {
+    document.getElementById('recalculateModal').classList.remove('hidden');
+}
+
+function closeRecalculateModal() {
+    document.getElementById('recalculateModal').classList.add('hidden');
+}
+
+function openDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('finalDeleteBtn').disabled = true;
+    document.getElementById('deleteConfirmInput').focus();
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+function validateDeleteInput() {
+    const input = document.getElementById('deleteConfirmInput').value;
+    const target = "Yes I want to delete my account";
+    const btn = document.getElementById('finalDeleteBtn');
+    const hiddenInput = document.getElementById('hiddenConfirmInput');
+    
+    if (input === target) {
+        btn.disabled = false;
+        hiddenInput.value = input;
+    } else {
+        btn.disabled = true;
+        hiddenInput.value = '';
+    }
+}
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeDeleteModal();
+        closeRecalculateModal();
+    }
+});
+
+// Close modals when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeDeleteModal();
+    }
+});
+
+document.getElementById('recalculateModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeRecalculateModal();
+    }
+});
+</script>
+{% endblock %}
