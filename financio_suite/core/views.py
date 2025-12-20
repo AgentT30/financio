@@ -9,6 +9,7 @@ from fds.models import FixedDeposit
 from investments.models import Investment
 from categories.models import Category
 from transactions.models import Transaction
+from reports.services import ReportService
 
 
 @login_required
@@ -110,6 +111,9 @@ def dashboard(request):
         'accounts': accounts[:5],  # Show first 5 accounts
         'stats': stats,
         'recent_transactions': recent_transactions,
+        'cashflow_data': ReportService.get_monthly_cashflow(request.user),
+        'expense_breakdown': ReportService.get_expense_breakdown(request.user),
+        'net_worth_trend': ReportService.get_net_worth_trend(request.user),
     }
 
     return render(request, 'dashboard/dashboard.html', context)

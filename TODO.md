@@ -934,24 +934,34 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 
 ### Dashboard Enhancements
 
-- [ ] Income vs Expense chart (last 6 months)
-- [ ] Spend by category pie/bar chart (MTD)
+- [ ] **Visual Analytics (Charts)**
+  - [x] Monthly Cashflow (Bar Chart - last 6 months)
+  - [x] Expense Breakdown (Doughnut Chart - MTD)
+  - [x] Net Worth Trend (Line Chart)
+  - [ ] Asset Allocation (Banks vs FDs vs Investments)
+- [ ] **Smart Widgets**
+  - [ ] Savings Rate indicator: `(Income - Expense) / Income`
+  - [ ] Top 5 Spending Categories with progress bars
+  - [ ] Upcoming Alerts (FD maturity, Credit Card dues)
+  - [ ] Daily Average Spend (MTD)
 - [ ] Date range filters
 - [ ] Account type filters
 - [ ] Category filters
-- [ ] Export dashboard data (PDF/CSV)
 - [ ] Recent transactions widget (last 10)
-- [ ] Upcoming EMI/FD maturity alerts
 
 ### Reports Module
 
-- [ ] Income vs Expense report with charts
-- [ ] Category-wise spending report
-- [ ] Account-wise balance sheet
-- [ ] Monthly/Yearly summary reports
-- [ ] Cashflow statement
-- [ ] Tax reports (interest income, capital gains)
-- [ ] PDF/Excel export functionality
+- [ ] **Custom Analysis**
+  - [ ] Income vs Expense report with deep-dive charts
+  - [ ] Category-wise spending report
+  - [ ] Account-wise performance/balance sheet
+  - [ ] Monthly/Yearly summary reports
+- [ ] **Financial Statements**
+  - [ ] Cashflow statement
+  - [ ] Tax reports (interest income, capital gains)
+- [ ] **Utilities**
+  - [ ] PDF/Excel export functionality
+  - [ ] Custom date range selection
 
 ### Transfers Module
 

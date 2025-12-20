@@ -1,0 +1,8 @@
+db/
+.github/
+.agent/
+.git/
+.venv/
+**/__pycache__/
+*.pyc
+.env
