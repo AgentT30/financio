@@ -85,7 +85,7 @@ def fd_create(request):
             )
 
             messages.success(request, f'Fixed Deposit "{fd.name}" created successfully!')
-            return redirect('fd_list')
+            return redirect('fds:fd_list')
     else:
         form = FixedDepositForm()
 
@@ -146,7 +146,7 @@ def fd_edit(request, pk):
     # Prevent editing archived FDs
     if fd.status == 'archived':
         messages.error(request, f'Cannot edit archived FD "{fd.name}".')
-        return redirect('fd_detail', pk=pk)
+        return redirect('fds:fd_detail', pk=pk)
 
     if request.method == 'POST':
         form = FixedDepositForm(request.POST, instance=fd)
@@ -162,7 +162,7 @@ def fd_edit(request, pk):
             )
 
             messages.success(request, f'Fixed Deposit "{fd.name}" updated successfully!')
-            return redirect('fd_detail', pk=pk)
+            return redirect('fds:fd_detail', pk=pk)
     else:
         form = FixedDepositForm(instance=fd)
 
@@ -208,7 +208,7 @@ def fd_delete(request, pk):
         fd.delete()
 
         messages.success(request, f'Fixed Deposit "{name}" deleted successfully!')
-        return redirect('fd_list')
+        return redirect('fds:fd_list')
 
     context = {
         'fd': fd,
@@ -236,7 +236,7 @@ def fd_mark_matured(request, pk):
         # Verify FD is active
         if fd.status != 'active':
             messages.error(request, f'FD "{fd.name}" is already archived.')
-            return redirect('fd_detail', pk=pk)
+            return redirect('fds:fd_detail', pk=pk)
 
         # Mark as matured (archive)
         fd.status = 'archived'
@@ -255,8 +255,8 @@ def fd_mark_matured(request, pk):
             request,
             f'Fixed Deposit "{fd.name}" marked as matured and archived.'
         )
-        return redirect('fd_list')
+        return redirect('fds:fd_list')
 
     # GET request not allowed for this action
     messages.error(request, 'Invalid request method.')
-    return redirect('fd_detail', pk=pk)
+    return redirect('fds:fd_detail', pk=pk)

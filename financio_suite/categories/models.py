@@ -93,7 +93,15 @@ class Category(models.Model):
     
     def clean(self):
         """Validate category constraints"""
-        # Check hierarchy depth (max 3 levels)
+        # 1. Prevent circular references (Check this first to avoid infinite loops in depth check)
+        if self.parent:
+            current = self.parent
+            while current:
+                if current.id == self.id:
+                    raise ValidationError("Category cannot be its own ancestor")
+                current = current.parent
+
+        # 2. Check hierarchy depth (max 3 levels)
         if self.parent:
             depth = self._get_depth()
             if depth > 3:
@@ -101,15 +109,7 @@ class Category(models.Model):
                     "Category hierarchy cannot exceed 3 levels (current depth would be {})".format(depth)
                 )
         
-        # Prevent circular references
-        if self.parent:
-            current = self.parent
-            while current:
-                if current.id == self.id:
-                    raise ValidationError("Category cannot be its own ancestor")
-                current = current.parent
-        
-        # Validate parent type matches child type
+        # 3. Validate parent type matches child type
         if self.parent and self.parent.type != self.type:
             raise ValidationError(
                 f"Parent category type ({self.parent.get_type_display()}) "
