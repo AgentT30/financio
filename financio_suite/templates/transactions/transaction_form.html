@@ -1,0 +1,245 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-3xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'transactions:transaction_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Transactions
+                </a>
+
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight">{{ page_title }}</h1>
+                    <a href="{% url 'transfers:transfer_create' %}" class="inline-flex items-center px-4 py-2 rounded-lg border-2 border-primary text-primary hover:bg-primary hover:text-white text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                        Add Transfer Instead
+                    </a>
+                </div>
+
+                <!-- Messages -->
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="rounded-lg p-4 mb-2 {% if message.tags == 'error' %}bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200{% elif message.tags == 'success' %}bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200{% else %}bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200{% endif %}">
+                        {{ message|capfirst }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Form -->
+                <form method="post" class="space-y-6" id="transactionForm">
+                    {% csrf_token %}
+                    
+                    <!-- Non-field errors -->
+                    {% if form.non_field_errors %}
+                    <div class="rounded-lg p-4 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Transaction Details -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Transaction Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Transaction Type -->
+                            <div class="md:col-span-2 relative z-20">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Type <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.transaction_type }}
+                                {% if form.transaction_type.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.transaction_type.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Date -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Date <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.date }}
+                                <!-- Quick Date Buttons -->
+                                <div class="flex gap-2 mt-2">
+                                    <button type="button" onclick="setDateOffset(2)" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                        Day Before Yesterday
+                                    </button>
+                                    <button type="button" onclick="setDateOffset(1)" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                        Yesterday
+                                    </button>
+                                    <button type="button" onclick="setDateOffset(0)" class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors">
+                                        Today
+                                    </button>
+                                </div>
+                                {% if form.date.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.date.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Time -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Time
+                                </label>
+                                {{ form.time }}
+                                {% if form.time.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.time.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Amount -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Amount (₹) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.amount.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="relative z-10">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Payment Method <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.method_type }}
+                                {% if form.method_type.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.method_type.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Account -->
+                            <div class="relative z-10">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Account <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.account }}
+                                {% if form.account.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.account.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Category -->
+                            <div class="relative z-10">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Category
+                                </label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.category.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Purpose -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Purpose <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.purpose }}
+                                {% if form.purpose.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.purpose.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex gap-4">
+                        <button type="submit" class="flex-1 md:flex-none px-8 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            {{ submit_text }}
+                        </button>
+                        <a href="{% url 'transactions:transaction_list' %}" class="flex-1 md:flex-none px-8 py-3 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-bold transition-colors text-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Quick date selector function
+    function setDateOffset(daysAgo) {
+        const dateField = document.getElementById('id_date');
+        if (dateField) {
+            const date = new Date();
+            date.setDate(date.getDate() - daysAgo);
+            
+            // Format as YYYY-MM-DD for input[type="date"]
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            
+            dateField.value = `${year}-${month}-${day}`;
+        }
+    }
+    
+    // Filter categories based on transaction type
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeField = document.getElementById('id_transaction_type');
+        const categoryField = document.getElementById('id_category');
+        
+        if (typeField && categoryField) {
+            // Store all category options on first load
+            const allOptions = [];
+            for (let i = 0; i < categoryField.options.length; i++) {
+                const opt = categoryField.options[i];
+                const dataType = opt.getAttribute('data-type');
+                allOptions.push({
+                    value: opt.value,
+                    text: opt.text,
+                    dataType: dataType
+                });
+            }
+            
+            function filterCategories() {
+                const selectedType = typeField.value;
+                
+                // Clear all options
+                categoryField.innerHTML = '';
+                
+                // Add empty option first
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.text = 'Choose a category (optional)';
+                categoryField.appendChild(emptyOpt);
+                
+                // Add matching categories
+                allOptions.forEach(option => {
+                    // Skip the empty option since we already added it
+                    if (!option.value) return;
+                    
+                    // Add option if type matches
+                    if (selectedType && option.dataType === selectedType) {
+                        const opt = document.createElement('option');
+                        opt.value = option.value;
+                        opt.text = option.text;
+                        opt.setAttribute('data-type', option.dataType);
+                        categoryField.appendChild(opt);
+                    }
+                });
+            }
+            
+            // Filter when type changes
+            typeField.addEventListener('change', filterCategories);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,658 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load transaction_tags %}
+{% load indian_numbers %}
+
+{% block title %}Dashboard - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5">
+                <div class="max-w-7xl mx-auto">
+                    <h2 class="text-gray-900 dark:text-white text-xl md:text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3">Dashboard</h2>
+                    
+                    <!-- Overview Cards -->
+                    <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] pb-2 pt-4">Overview</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a]">
+                            <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Net Worth</p>
+                            <p class="text-gray-900 dark:text-white tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.net_worth|default:"0"|indian_format:0 }}</p>
+                        </div>
+                        <button onclick="openAccountsModal()" class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-gray-100 dark:bg-[#27273a] hover:bg-gray-200 dark:hover:bg-[#2f3548] transition-colors cursor-pointer text-left w-full">
+                            <div class="flex items-center justify-between">
+                                <p class="text-gray-900 dark:text-white text-sm md:text-base font-medium leading-normal">Total Accounts</p>
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="text-gray-900 dark:text-white tracking-light text-sm font-semibold leading-tight">
+                                    <div class="flex flex-col gap-1">
+                                        {% if stats.total_banks > 0 %}
+                                            <span>{{ stats.total_banks }} Bank{{ stats.total_banks|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_cards > 0 %}
+                                            <span>{{ stats.total_cards }} Card{{ stats.total_cards|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_fds > 0 %}
+                                            <span>{{ stats.total_fds }} FD{{ stats.total_fds|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_investments > 0 %}
+                                            <span>{{ stats.total_investments }} Investment{{ stats.total_investments|pluralize }}</span>
+                                        {% endif %}
+                                        {% if stats.total_banks == 0 and stats.total_cards == 0 and stats.total_fds == 0 and stats.total_investments == 0 %}
+                                            <span>0</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                            <p class="text-green-900 dark:text-green-300 text-sm md:text-base font-medium leading-normal">Income (MTD)</p>
+                            <p class="text-green-900 dark:text-green-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.monthly_income|default:"0"|indian_format:0 }}</p>
+                        </div>
+                        <div class="flex flex-col gap-2 rounded-lg p-4 md:p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                            <p class="text-red-900 dark:text-red-300 text-sm md:text-base font-medium leading-normal">Expense (MTD)</p>
+                            <p class="text-red-900 dark:text-red-300 tracking-light text-xl md:text-2xl font-bold leading-tight">₹{{ stats.monthly_expense|default:"0"|indian_format:0 }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                        <!-- Monthly Cashflow Chart -->
+                        <div class="lg:col-span-2">
+                            <div class="flex items-center justify-between pb-3">
+                                <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em]">Monthly Cashflow</h3>
+                                <div class="flex items-center gap-4 text-xs">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                        <span class="text-gray-600 dark:text-gray-400">Income</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                        <span class="text-gray-600 dark:text-gray-400">Expense</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-800 p-4 md:p-6">
+                                <div class="h-[300px] w-full">
+                                    <canvas id="cashflowChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Expense Breakdown Chart -->
+                        <div class="lg:col-span-1">
+                            <div class="flex items-center justify-between pb-3">
+                                <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em]">Expense Breakdown</h3>
+                            </div>
+                            <div class="bg-white dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-800 p-4 md:p-6">
+                                <div class="h-[300px] w-full relative">
+                                    <canvas id="expenseChart"></canvas>
+                                    {% if not expense_breakdown.data %}
+                                    <div class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-dark-bg/50 rounded-xl">
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">No expenses this month</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Worth Trend Chart -->
+                    <div class="mt-8">
+                        <div class="flex items-center justify-between pb-3">
+                            <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em]">Net Worth Trend</h3>
+                        </div>
+                        <div class="bg-white dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-800 p-4 md:p-6">
+                            <div class="h-[300px] w-full">
+                                <canvas id="netWorthChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Transactions -->
+                    <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] pb-2 pt-6">Recent Transactions</h3>
+                    <div class="bg-white dark:bg-dark-bg rounded-lg border border-gray-200 dark:border-gray-800">
+                        {% if recent_transactions %}
+                            <!-- Desktop Table View -->
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="border-b border-gray-200 dark:border-gray-800">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Account</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+                                        {% for transaction in recent_transactions %}
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <span class="text-sm text-gray-900 dark:text-white" title="{{ transaction.datetime_ist|date:'d M Y, g:i A' }}">
+                                                    {{ transaction.datetime_ist|timesince }} ago
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transaction.category.name|title }}</span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ transaction|get_account }}</span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
+                                                {% else %}
+                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-800">
+                                {% for transaction in recent_transactions %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-xs text-gray-500 dark:text-gray-400" title="{{ transaction.datetime_ist|date:'d M Y, g:i A' }}">
+                                                    {{ transaction.datetime_ist|timesince }} ago
+                                                </span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ transaction.category.name|title }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ transaction|get_account }}</p>
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            {% if transaction.transaction_type == 'income' %}
+                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
+                                            {% else %}
+                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- View All Link -->
+                            <div class="border-t border-gray-200 dark:border-gray-800 p-4">
+                                <a href="{% url 'transactions:transaction_list' %}" class="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+                                    <span>View All Transactions</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm md:text-base">No transactions yet</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Actions - Mobile -->
+                    <div class="mt-6">
+                        <h3 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Quick actions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <a href="{% url 'transactions:transaction_create' %}" class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                                <span class="truncate">New Transaction</span>
+                            </a>
+                            <button onclick="openAccountTypeModal()" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                                <span class="truncate">Add Account</span>
+                            </button>
+                            <a href="{% url 'transactions:transaction_list' %}?view=transfers" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#27273a] hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] transition-colors">
+                                <span class="truncate">Transfer Money</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accounts Navigation Modal -->
+<div id="accountsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <!-- Close Button -->
+        <button onclick="closeAccountsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Modal Header -->
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">View Accounts</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Choose which section you want to view</p>
+        
+        <!-- Navigation Options -->
+        <div class="space-y-3">
+            <!-- Accounts & Cards Option -->
+            <a href="{% url 'account_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏦
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Accounts & Cards</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Bank accounts and credit cards</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Fixed Deposits Option -->
+            <a href="{% url 'fds:fd_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏛️
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Fixed Deposits</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">View all fixed deposits</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Investments Option -->
+            <a href="{% url 'investments:investment_list' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    📈
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Investments</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Stocks, mutual funds, and more</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Account Type Choice Modal -->
+<div id="accountTypeModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <!-- Close Button -->
+        <button onclick="closeAccountTypeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Modal Header -->
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Add New Account</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Choose the type of account you want to add</p>
+        
+        <!-- Account Type Options -->
+        <div class="space-y-3">
+            <!-- Bank Account Option -->
+            <a href="{% url 'account_create' %}" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    🏦
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Bank Account</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Savings, Current, Checking, Salary</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+            
+            <!-- Credit Card Option -->
+            <a href="/creditcards/create/" class="flex items-center gap-4 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-800 transition-all group">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    💳
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white group-hover:text-primary">Credit Card</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Visa, Mastercard, RuPay, Amex</p>
+                </div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function openAccountsModal() {
+    const modal = document.getElementById('accountsModal');
+    modal.classList.remove('hidden');
+}
+
+function closeAccountsModal() {
+    const modal = document.getElementById('accountsModal');
+    modal.classList.add('hidden');
+}
+
+function openAccountTypeModal() {
+    const modal = document.getElementById('accountTypeModal');
+    modal.classList.remove('hidden');
+}
+
+function closeAccountTypeModal() {
+    const modal = document.getElementById('accountTypeModal');
+    modal.classList.add('hidden');
+}
+
+// Close modals when clicking outside
+document.getElementById('accountsModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeAccountsModal();
+    }
+});
+
+document.getElementById('accountTypeModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeAccountTypeModal();
+    }
+});
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeAccountsModal();
+        closeAccountTypeModal();
+    }
+});
+</script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{{ cashflow_data|json_script:"cashflow-data" }}
+{{ expense_breakdown|json_script:"expense-data" }}
+{{ net_worth_trend|json_script:"net-worth-data" }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cashflowData = JSON.parse(document.getElementById('cashflow-data').textContent);
+    const expenseData = JSON.parse(document.getElementById('expense-data').textContent);
+    const netWorthData = JSON.parse(document.getElementById('net-worth-data').textContent);
+    
+    const isDark = document.documentElement.classList.contains('dark');
+    const textColor = isDark ? '#9ca3af' : '#4b5563';
+    const gridColor = isDark ? '#374151' : '#e5e7eb';
+
+    // Monthly Cashflow Chart
+    const cashflowCtx = document.getElementById('cashflowChart').getContext('2d');
+    new Chart(cashflowCtx, {
+        type: 'bar',
+        data: {
+            labels: cashflowData.labels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: cashflowData.income,
+                    backgroundColor: '#10b981', // green-500
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barThickness: 12,
+                },
+                {
+                    label: 'Expense',
+                    data: cashflowData.expense,
+                    backgroundColor: '#ef4444', // red-500
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barThickness: 12,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                    titleColor: isDark ? '#ffffff' : '#111827',
+                    bodyColor: isDark ? '#d1d5db' : '#374151',
+                    borderColor: isDark ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-IN', {
+                                    style: 'currency',
+                                    currency: 'INR',
+                                    maximumFractionDigits: 0
+                                }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 11
+                        },
+                        callback: function(value) {
+                            if (value >= 1000) {
+                                return '₹' + (value / 1000) + 'k';
+                            }
+                            return '₹' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Expense Breakdown Chart
+    if (expenseData.data && expenseData.data.length > 0) {
+        const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+        new Chart(expenseCtx, {
+            type: 'doughnut',
+            data: {
+                labels: expenseData.labels,
+                datasets: [{
+                    data: expenseData.data,
+                    backgroundColor: expenseData.colors,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                        titleColor: isDark ? '#ffffff' : '#111827',
+                        bodyColor: isDark ? '#d1d5db' : '#374151',
+                        borderColor: isDark ? '#374151' : '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                const formattedValue = new Intl.NumberFormat('en-IN', {
+                                    style: 'currency',
+                                    currency: 'INR',
+                                    maximumFractionDigits: 0
+                                }).format(value);
+                                return `${label}: ${formattedValue} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Net Worth Trend Chart
+    const netWorthCtx = document.getElementById('netWorthChart').getContext('2d');
+    const gradient = netWorthCtx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); // blue-500
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+    new Chart(netWorthCtx, {
+        type: 'line',
+        data: {
+            labels: netWorthData.labels,
+            datasets: [{
+                label: 'Net Worth',
+                data: netWorthData.data,
+                borderColor: '#3b82f6', // blue-500
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: isDark ? '#111827' : '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                    titleColor: isDark ? '#ffffff' : '#111827',
+                    bodyColor: isDark ? '#d1d5db' : '#374151',
+                    borderColor: isDark ? '#374151' : '#e5e7eb',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += new Intl.NumberFormat('en-IN', {
+                                    style: 'currency',
+                                    currency: 'INR',
+                                    maximumFractionDigits: 0
+                                }).format(context.parsed.y);
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: gridColor,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: textColor,
+                        font: {
+                            family: 'Inter, sans-serif',
+                            size: 11
+                        },
+                        callback: function(value) {
+                            if (value >= 100000) {
+                                return '₹' + (value / 100000).toFixed(1) + 'L';
+                            }
+                            if (value >= 1000) {
+                                return '₹' + (value / 1000) + 'k';
+                            }
+                            return '₹' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,491 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load transaction_tags %}
+{% load indian_numbers %}
+
+{% block title %}{{ account.name }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-5xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'account_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Accounts
+                </a>
+
+                <!-- Account Header -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            {% if account.picture %}
+                            <img src="{{ account.picture.url }}" alt="{{ account.name }}" class="w-16 h-16 rounded-lg object-cover">
+                            {% else %}
+                            <div class="flex items-center justify-center rounded-lg w-16 h-16" style="background-color: {{ account.color|default:'#4d88ff' }};">
+                                <span class="text-white font-bold text-2xl">{{ account.name|slice:":1"|upper }}</span>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ account.name }}</h1>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                        🏦 Bank Account
+                                    </span>
+                                    <p class="text-gray-600 dark:text-gray-400">{{ account.get_account_type_display|title }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="{% url 'account_edit' account.pk %}" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium transition-colors">
+                                Edit
+                            </a>
+                            <a href="{% url 'account_toggle_status' account.pk %}" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium transition-colors">
+                                {% if account.status == 'active' %}Archive{% else %}Activate{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Balance Card -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Current Balance</h2>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.get_current_balance|indian_format }}</p>
+                    </div>
+
+                    <!-- Opening Balance Card -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Opening Balance</h2>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ account.opening_balance|indian_format }}</p>
+                    </div>
+                </div>
+
+                <!-- Account Information -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Account Information</h2>
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {% if account.institution %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Institution</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.institution }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if account.branch_name %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Branch</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.branch_name|title }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Account Number</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium flex items-center gap-2">
+                                <span id="accountNumber">{{ account.get_masked_account_number }}</span>
+                                {% if full_account_number %}
+                                <button onclick="toggleAccountNumber()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" title="Toggle visibility">
+                                    <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    <svg id="eyeOffIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="copyAccountNumber()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300" title="Copy account number">
+                                    <svg id="copyIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <svg id="checkIcon" class="w-5 h-5 hidden text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% if account.ifsc_code %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">IFSC Code</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.ifsc_code }}</dd>
+                        </div>
+                        {% endif %}
+                        {% if account.customer_id %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Customer ID</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.customer_id }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Status</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.get_status_display|title }}</dd>
+                        </div>
+                        {% if account.opened_on %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Opened On</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ account.opened_on|date:"d M Y" }}</dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                    {% if account.notes %}
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400 mb-1">Notes</dt>
+                        <dd class="text-base text-gray-900 dark:text-white">{{ account.notes }}</dd>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Transaction History -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Transaction History</h2>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        <nav class="flex -mb-px">
+                            <button onclick="switchTab('transactions')" id="transactions-tab" class="tab-button px-6 py-3 text-sm font-medium border-b-2 border-primary text-primary">
+                                Transactions ({{ transactions.paginator.count }})
+                            </button>
+                            <button onclick="switchTab('transfers')" id="transfers-tab" class="tab-button px-6 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600">
+                                Transfers ({{ transfers.paginator.count }})
+                            </button>
+                        </nav>
+                    </div>
+                    
+                    <!-- Transactions Tab Content -->
+                    <div id="transactions-content" class="tab-content">
+                        {% if transactions %}
+                            <!-- Desktop Table View -->
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Purpose</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for transaction in transactions %}
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transaction.datetime_ist|date:"d M Y, g:i A" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transaction.category.name|title }}</span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ transaction.purpose|truncatewords:10 }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="text-sm font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
+                                                {% else %}
+                                                    <span class="text-sm font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for transaction in transactions %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                {% if transaction.transaction_type == 'income' %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                                        Income
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                                                        Expense
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ transaction.datetime_ist|date:"d M Y" }}</span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ transaction.category.name|title }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ transaction.purpose|truncatewords:15 }}</p>
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            {% if transaction.transaction_type == 'income' %}
+                                                <span class="text-base font-semibold text-green-600 dark:text-green-400">+₹{{ transaction.amount|indian_format }}</span>
+                                            {% else %}
+                                                <span class="text-base font-semibold text-red-600 dark:text-red-400">-₹{{ transaction.amount|indian_format }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if transactions.has_other_pages %}
+                            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
+                                </div>
+                                <div class="flex gap-2">
+                                    {% if transactions.has_previous %}
+                                        <a href="?transactions_page={{ transactions.previous_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Previous
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Previous
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if transactions.has_next %}
+                                        <a href="?transactions_page={{ transactions.next_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Next
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Next
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm">No transactions yet for this account</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Transfers Tab Content -->
+                    <div id="transfers-content" class="tab-content hidden">
+                        {% if transfers %}
+                            <!-- Desktop Table View -->
+                            <div class="hidden md:block overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 dark:bg-gray-800/50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Direction</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Other Account</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Memo</th>
+                                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {% for transfer in transfers %}
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="text-sm text-gray-900 dark:text-white">{{ transfer.datetime_ist|date:"d M Y, g:i A" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                                                        Outgoing
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                        Incoming
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-900 dark:text-white">
+                                                    {% if transfer|is_outgoing_transfer:account %}
+                                                        {{ transfer|get_transfer_to_account }}
+                                                    {% else %}
+                                                        {{ transfer|get_transfer_from_account }}
+                                                    {% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ transfer.memo|truncatewords:10|default:"-" }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="text-sm font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|floatformat:0 }}</span>
+                                                {% else %}
+                                                    <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|floatformat:0 }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Mobile Card View -->
+                            <div class="md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+                                {% for transfer in transfers %}
+                                <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-start justify-between mb-2">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300">
+                                                        Outgoing
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                        Incoming
+                                                    </span>
+                                                {% endif %}
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ transfer.datetime_ist|date:"d M Y" }}</span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                {% if transfer|is_outgoing_transfer:account %}
+                                                    To: {{ transfer|get_transfer_to_account }}
+                                                {% else %}
+                                                    From: {{ transfer|get_transfer_from_account }}
+                                                {% endif %}
+                                            </p>
+                                            {% if transfer.memo %}
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ transfer.memo|truncatewords:15 }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            {% if transfer|is_outgoing_transfer:account %}
+                                                <span class="text-base font-semibold text-orange-600 dark:text-orange-400">-₹{{ transfer.amount|indian_format }}</span>
+                                            {% else %}
+                                                <span class="text-base font-semibold text-blue-600 dark:text-blue-400">+₹{{ transfer.amount|indian_format }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if transfers.has_other_pages %}
+                            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    Page {{ transfers.number }} of {{ transfers.paginator.num_pages }}
+                                </div>
+                                <div class="flex gap-2">
+                                    {% if transfers.has_previous %}
+                                        <a href="?transfers_page={{ transfers.previous_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Previous
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Previous
+                                        </span>
+                                    {% endif %}
+                                    
+                                    {% if transfers.has_next %}
+                                        <a href="?transfers_page={{ transfers.next_page_number }}" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                                            Next
+                                        </a>
+                                    {% else %}
+                                        <span class="px-4 py-2 text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg cursor-not-allowed">
+                                            Next
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="py-12 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm">No transfers yet for this account</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<script>
+let isAccountNumberVisible = false;
+const maskedNumber = '{{ account.get_masked_account_number }}';
+const fullNumber = '{{ full_account_number }}';
+
+function toggleAccountNumber() {
+    const accountNumberEl = document.getElementById('accountNumber');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeOffIcon = document.getElementById('eyeOffIcon');
+    
+    isAccountNumberVisible = !isAccountNumberVisible;
+    
+    if (isAccountNumberVisible) {
+        accountNumberEl.textContent = fullNumber || maskedNumber;
+        eyeIcon.classList.add('hidden');
+        eyeOffIcon.classList.remove('hidden');
+    } else {
+        accountNumberEl.textContent = maskedNumber;
+        eyeIcon.classList.remove('hidden');
+        eyeOffIcon.classList.add('hidden');
+    }
+}
+
+function copyAccountNumber() {
+    const numberToCopy = fullNumber || maskedNumber;
+    const copyIcon = document.getElementById('copyIcon');
+    const checkIcon = document.getElementById('checkIcon');
+    
+    navigator.clipboard.writeText(numberToCopy).then(function() {
+        // Show check icon
+        copyIcon.classList.add('hidden');
+        checkIcon.classList.remove('hidden');
+        
+        // Reset after 2 seconds
+        setTimeout(function() {
+            copyIcon.classList.remove('hidden');
+            checkIcon.classList.add('hidden');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Failed to copy: ', err);
+    });
+}
+
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+    
+    // Remove active state from all tabs
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-primary', 'text-primary');
+        button.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-content').classList.remove('hidden');
+    
+    // Add active state to selected tab
+    const activeTab = document.getElementById(tabName + '-tab');
+    activeTab.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    activeTab.classList.add('border-primary', 'text-primary');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'auth/base_auth.html' %}
+{% load static %}
+
+{% block title %}Account Created - Financio{% endblock %}
+
+{% block auth_content %}
+<div class="flex flex-col items-center justify-center px-4 py-8">
+    <!-- Success Icon -->
+    <div class="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+    </div>
+    
+    <h2 class="text-gray-900 dark:text-white tracking-light text-[28px] font-bold leading-tight text-center pb-3">
+        Account Created!
+    </h2>
+    
+    <p class="text-gray-600 dark:text-gray-400 text-base leading-normal text-center max-w-md pb-6">
+        Your account has been successfully created. **Important:** Please save your recovery key below. You will need it if you ever forget your password.
+    </p>
+    
+    <!-- Recovery Key Box -->
+    <div class="w-full bg-gray-50 dark:bg-dark-surface border-2 border-dashed border-primary/30 rounded-xl p-6 mb-8 relative group">
+        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-center mb-2">Your Recovery Key</p>
+        <div class="flex items-center justify-center gap-3">
+            <code id="recoveryKey" class="text-2xl md:text-3xl font-mono font-bold text-primary dark:text-primary-light tracking-wider select-all">
+                {{ recovery_token|default:"RECOVERY-KEY-EXPIRED" }}
+            </code>
+        </div>
+        <p class="text-[10px] text-gray-400 dark:text-gray-500 text-center mt-4">This key will only be shown once. Keep it secret and safe.</p>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex flex-col w-full gap-3">
+        <button
+            onclick="downloadRecoveryKey()"
+            class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 bg-primary hover:bg-primary-hover text-white text-base font-bold transition-colors shadow-lg shadow-primary/20"
+        >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Download Recovery Key
+        </button>
+        
+        <a
+            href="{% url 'dashboard' %}"
+            class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-base font-bold transition-colors"
+        >
+            Go to Dashboard
+        </a>
+    </div>
+</div>
+
+<script>
+function downloadRecoveryKey() {
+    const key = document.getElementById('recoveryKey').innerText.trim();
+    if (key === "RECOVERY-KEY-EXPIRED") return;
+    
+    const element = document.createElement('a');
+    const file = new Blob([`Financio Recovery Key\n\nKeep this file safe. You will need this key to reset your password if you forget it.\n\nRecovery Key: ${key}\n\nGenerated on: ${new Date().toLocaleString()}`], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "financio_recovery_key.txt";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
+</script>
+{% endblock %}

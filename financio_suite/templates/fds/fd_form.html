@@ -1,0 +1,274 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-3xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'fds:fd_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Fixed Deposits
+                </a>
+
+                <h1 class="text-gray-900 dark:text-white text-2xl md:text-3xl font-bold leading-tight mb-6">{{ title }}</h1>
+
+                <!-- Form -->
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Non-field errors -->
+                    {% if form.non_field_errors %}
+                    <div class="rounded-lg p-4 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Information -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Basic Information</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- FD Name -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    FD Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.name.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.name.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.name.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Institution -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Institution <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.institution }}
+                                {% if form.institution.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.institution.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.institution.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.institution.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- FD Number -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    FD Number
+                                </label>
+                                {{ form.fd_number }}
+                                {% if form.fd_number.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.fd_number.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.fd_number.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.fd_number.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FD Details -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">FD Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Opened On -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Opened On <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.opened_on }}
+                                {% if form.opened_on.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.opened_on.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.opened_on.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.opened_on.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Maturity Date -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Maturity Date <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.maturity_date }}
+                                {% if form.maturity_date.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.maturity_date.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.maturity_date.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.maturity_date.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Tenure Months -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Tenure (Months) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.tenure_months }}
+                                {% if form.tenure_months.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.tenure_months.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.tenure_months.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.tenure_months.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Compounding Frequency -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Compounding Frequency <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.compounding_frequency }}
+                                {% if form.compounding_frequency.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.compounding_frequency.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.compounding_frequency.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.compounding_frequency.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Auto Renewal -->
+                            <div class="md:col-span-2">
+                                <label class="flex items-center">
+                                    {{ form.auto_renewal }}
+                                    <span class="ml-2 text-gray-900 dark:text-white text-base font-medium">Auto Renewal</span>
+                                </label>
+                                {% if form.auto_renewal.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.auto_renewal.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.auto_renewal.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.auto_renewal.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Financial Information</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Principal Amount -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Principal Amount (₹) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.principal_amount }}
+                                {% if form.principal_amount.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.principal_amount.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.principal_amount.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.principal_amount.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Interest Rate -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Interest Rate (%) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.interest_rate }}
+                                {% if form.interest_rate.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.interest_rate.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.interest_rate.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.interest_rate.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Maturity Amount -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Maturity Amount (₹) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.maturity_amount }}
+                                {% if form.maturity_amount.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.maturity_amount.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.maturity_amount.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.maturity_amount.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Details -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Additional Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Status -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Status <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.status.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.status.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.status.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Color -->
+                            <div>
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Color
+                                </label>
+                                {{ form.color }}
+                                {% if form.color.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.color.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.color.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.color.help_text }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Notes -->
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
+                                    Notes
+                                </label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.notes.errors.0 }}</p>
+                                {% endif %}
+                                {% if form.notes.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.notes.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="flex-1 flex items-center justify-center px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
+                            {{ button_text }}
+                        </button>
+                        <a href="{% url 'fds:fd_list' %}" class="flex items-center justify-center px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-bold transition-colors">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

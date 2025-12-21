@@ -1,0 +1,163 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load indian_numbers %}
+
+{% block title %}{{ fd.name }} - Financio{% endblock %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-10 py-5">
+            <div class="max-w-5xl mx-auto">
+                <!-- Back Button -->
+                <a href="{% url 'fds:fd_list' %}" class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 text-sm">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Fixed Deposits
+                </a>
+
+                <!-- FD Header -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center justify-center rounded-lg w-16 h-16" style="background-color: {{ fd.color|default:'#4d88ff' }};">
+                                <span class="text-white font-bold text-2xl">{{ fd.name|slice:":1"|upper }}</span>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ fd.name }}</h1>
+                                <div class="flex items-center gap-2 mt-1">
+                                    {% with badge_info=fd.get_maturity_badge_info %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if badge_info.color == 'green' %}bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300
+                                        {% elif badge_info.color == 'orange' %}bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300
+                                        {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400{% endif %}">
+                                        {{ badge_info.text }}
+                                    </span>
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            {% if fd.status == 'active' %}
+                            <a href="{% url 'fds:fd_edit' fd.pk %}" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium transition-colors">
+                                Edit
+                            </a>
+                            {% endif %}
+                            {% if can_mark_matured %}
+                            <form method="post" action="{% url 'fds:fd_mark_matured' fd.pk %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors" onclick="return confirm('Mark this FD as matured? This action cannot be undone.');">
+                                    Mark as Matured
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Principal Amount -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Principal Amount</h2>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white">₹{{ fd.principal_amount|indian_format }}</p>
+                    </div>
+
+                    <!-- Interest Earned -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Interest Earned</h2>
+                        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">₹{{ interest_earned|indian_format }}</p>
+                    </div>
+
+                    <!-- Maturity Amount -->
+                    <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                        <h2 class="text-sm text-gray-500 dark:text-gray-400 mb-1">Maturity Amount</h2>
+                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">₹{{ fd.maturity_amount|indian_format }}</p>
+                    </div>
+                </div>
+
+                <!-- FD Information -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">FD Information</h2>
+                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Institution</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.institution }}</dd>
+                        </div>
+                        {% if fd.fd_number %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">FD Number</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.fd_number }}</dd>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Opened On</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.opened_on|date:"d M Y" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Maturity Date</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.maturity_date|date:"d M Y" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Tenure</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.tenure_months }} months</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Interest Rate</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.interest_rate }}% p.a.</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Compounding Frequency</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.get_compounding_frequency_display }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Auto Renewal</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.auto_renewal|yesno:"Yes,No" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Status</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">{{ fd.get_status_display|title }}</dd>
+                        </div>
+                        {% if fd.status == 'active' and fd.days_to_maturity != None %}
+                        <div>
+                            <dt class="text-sm text-gray-500 dark:text-gray-400">Days to Maturity</dt>
+                            <dd class="text-base text-gray-900 dark:text-white font-medium">
+                                {% if fd.days_to_maturity > 0 %}
+                                    {{ fd.days_to_maturity }} days
+                                {% elif fd.days_to_maturity == 0 %}
+                                    Matures today
+                                {% else %}
+                                    Matured ({{ fd.days_to_maturity }} days)
+                                {% endif %}
+                            </dd>
+                        </div>
+                        {% endif %}
+                    </dl>
+                    {% if fd.notes %}
+                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <dt class="text-sm text-gray-500 dark:text-gray-400 mb-1">Notes</dt>
+                        <dd class="text-base text-gray-900 dark:text-white">{{ fd.notes }}</dd>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Danger Zone (Delete) -->
+                <div class="bg-white dark:bg-dark-surface rounded-lg border border-red-200 dark:border-red-900/50 p-6">
+                    <h2 class="text-lg font-bold text-red-600 dark:text-red-400 mb-2">Danger Zone</h2>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Delete this fixed deposit permanently. This action cannot be undone.
+                    </p>
+                    <a href="{% url 'fds:fd_delete' fd.pk %}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors">
+                        Delete Fixed Deposit
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

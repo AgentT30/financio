@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5">
+            <div class="max-w-7xl mx-auto">
+                {% if messages %}
+                    <div class="mb-6 space-y-2">
+                        {% for message in messages %}
+                            <div class="rounded-md p-4 {% if message.tags == 'success' %}bg-green-50 text-green-800 dark:bg-green-900/50 dark:text-green-200{% elif message.tags == 'error' %}bg-red-50 text-red-800 dark:bg-red-900/50 dark:text-red-200{% else %}bg-blue-50 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% block app_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

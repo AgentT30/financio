@@ -1,0 +1,38 @@
+services:
+  financio-db:
+    image: postgres:16-alpine
+    container_name: financio-db
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: financio
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  webapp:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/webapp/Dockerfile
+    container_name: financio-webapp
+    ports:
+      - 8013:8000
+  
+    volumes:
+      - ./financio_suite:/financio
+    environment:
+      - DB_HOST=financio-db
+      - DB_PORT=5432
+      - DB_NAME=financio
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - financio-db
+    command: 
+      - sh 
+      - -c
+      - |
+        python3 manage.py makemigrations
+        python3 manage.py migrate
+        python3 manage.py runserver 0.0.0.0:8000
