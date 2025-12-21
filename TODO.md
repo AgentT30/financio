@@ -61,6 +61,7 @@
   - [x] Consistent header and sidebar across Dashboard, Accounts, Categories
 - [x] **Button Text Fix:** Create Account button now displays text properly
 - [x] **Recovery Token System:** Implemented secure token-based password reset (no SMTP required)
+- [x] **CI/CD Pipeline:** GitHub Actions workflow for automated testing on pull requests
 
 ## 🚧 In Progress
 

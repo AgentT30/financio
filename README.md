@@ -284,6 +284,7 @@ The project follows a modular architecture with the following apps:
 - Isolated tests for Models, Forms, Views, and Utilities
 - Automated verification of ledger integration and balance tracking
 - Custom template tag testing (Indian numbers, ordinal formatting)
+- **CI/CD Pipeline**: GitHub Actions workflow for automated unit testing on pull requests
 
 #### UI/UX
 
