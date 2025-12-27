@@ -8,54 +8,56 @@ services:
       POSTGRES_DB: financio
     volumes:
       - ./db/data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 400M
 
   webapp:
     build:
       context: .
       dockerfile: ./dockerfiles/webapp/Dockerfile
-      network: host
     container_name: financio-webapp
-    ports:
-      - 8013:8000
 
     volumes:
       - ./financio_suite:/financio
     environment:
-      - DEBUG=True
       - DB_HOST=financio-db
       - DB_PORT=5432
       - DB_NAME=financio
       - DB_USER=postgres
       - DB_PASSWORD=postgres
-      - DJANGO_SETTINGS_MODULE=financio_suite.settings
-      - PYTHONPATH=/financio
     depends_on:
       - financio-db
-    command:
-      - sh
-      - -c
-      - |
-        python3 manage.py makemigrations
-        python3 manage.py migrate
-        python3 manage.py runserver 0.0.0.0:8000
+    deploy:
+      resources:
+        limits:
+          memory: 450M
+    command: >
+      sh -c "
+      python3 manage.py migrate &&
+      gunicorn financio_suite.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers 1
+      --threads 2
+      --timeout 120
+      "
 
-  unit_tests:
-    image: financio-webapp:latest
-    container_name: financio-unit_tests
+  nginx:
+    image: nginx:alpine
+    container_name: financio-nginx
+    ports:
+      - "80:80"
     volumes:
-      - ./financio_suite:/financio
-      - ./tests:/financio/tests
-    environment:
-      - DEBUG=True
-      - DB_HOST=financio-db
-      - DB_PORT=5432
-      - DB_NAME=financio
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DJANGO_SETTINGS_MODULE=financio_suite.settings
-      - PYTHONPATH=/financio
-    working_dir: /financio/tests
-    tty: true
-    command: ["tail", "-f", "/dev/null"]
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - webapp
+
+  certbot:
+    image: certbot/certbot
+    container_name: financio-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
