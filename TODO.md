@@ -61,6 +61,7 @@
   - [x] Consistent header and sidebar across Dashboard, Accounts, Categories
 - [x] **Button Text Fix:** Create Account button now displays text properly
 - [x] **Recovery Token System:** Implemented secure token-based password reset (no SMTP required)
+- [x] **CI/CD Pipeline:** GitHub Actions workflow for automated testing on pull requests
 
 ## 🚧 In Progress
 
@@ -1038,3 +1039,56 @@ See detailed breakdown below in "Credit Card Integration - Full System Integrati
 ---
 
 **Last Updated:** 20 December 2025
+
+---
+
+### 🧪 Unit Test Suite (Pytest) - IN PROGRESS
+
+**Objective:** Create a detailed unit test suite for all apps under `./tests/unit_tests`.
+
+- [x] **Accounts App** ✅
+  - [x] Model tests (validations, methods, balance fallback)
+  - [x] Form tests (clean methods, required fields)
+  - [x] View tests (CRUD, status toggle, detail pagination)
+- [x] **Authn App** ✅
+  - [x] Login/Logout views
+  - [x] Signup and password reset logic
+- [x] **Categories App** ✅
+  - [x] Model validations (hierarchy, color)
+  - [x] CRUD views and deletion safety
+- [x] **Transactions App** ✅
+  - [x] Model validations (amount, type matching)
+  - [x] CRUD views and ledger integration
+  - [ ] Soft delete logic
+- [x] **Transfers App** ✅
+  - [x] Model validations (from != to)
+  - [x] CRUD views and balance reversal
+- [x] **Ledger App** ✅
+  - [x] LedgerService (simple entry, transfer entry)
+  - [x] Balance recalculation logic
+- [x] **Credit Cards App** ✅
+  - [x] Model methods (available credit, amount owed)
+  - [x] CRUD views and balance tracking
+- [x] **Fixed Deposits App** ✅
+  - [x] Model validations and maturity logic
+  - [x] CRUD views
+- [x] **Investments App** ✅
+  - [x] Portfolio calculations (P&L, weighted average)
+  - [x] Transaction logic (buy/sell)
+- [x] **Core App** ✅
+  - [x] BaseAccount abstract model
+  - [x] Utility functions (account choices, emoji indicators)
+- [x] **Activity App** ✅
+  - [x] Activity logging utilities
+- [x] **Reports App** ✅
+  - [x] Report generation logic
+- [x] **UI App** ✅
+  - [x] Template tags and filters
+- [ ] **Loans App**
+  - [ ] Loan tracking logic
+- [ ] **Wallets App**
+  - [ ] Wallet tracking logic
+- [ ] **Cash App**
+  - [ ] Cash tracking logic
+- [ ] **Assets App**
+  - [ ] Asset tracking logic

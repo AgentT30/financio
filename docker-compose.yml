@@ -12,27 +12,50 @@ services:
       - "5432:5432"
 
   webapp:
-    build: 
+    build:
       context: .
       dockerfile: ./dockerfiles/webapp/Dockerfile
+      network: host
     container_name: financio-webapp
     ports:
       - 8013:8000
-  
+
     volumes:
       - ./financio_suite:/financio
     environment:
+      - DEBUG=True
       - DB_HOST=financio-db
       - DB_PORT=5432
       - DB_NAME=financio
       - DB_USER=postgres
       - DB_PASSWORD=postgres
+      - DJANGO_SETTINGS_MODULE=financio_suite.settings
+      - PYTHONPATH=/financio
     depends_on:
       - financio-db
-    command: 
-      - sh 
+    command:
+      - sh
       - -c
       - |
         python3 manage.py makemigrations
         python3 manage.py migrate
         python3 manage.py runserver 0.0.0.0:8000
+
+  unit_tests:
+    image: financio-webapp:latest
+    container_name: financio-unit_tests
+    volumes:
+      - ./financio_suite:/financio
+      - ./tests:/financio/tests
+    environment:
+      - DEBUG=True
+      - DB_HOST=financio-db
+      - DB_PORT=5432
+      - DB_NAME=financio
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DJANGO_SETTINGS_MODULE=financio_suite.settings
+      - PYTHONPATH=/financio
+    working_dir: /financio/tests
+    tty: true
+    command: ["tail", "-f", "/dev/null"]

@@ -84,3 +84,5 @@ Thumbs.db
 # Project specific
 /db/data/*
 !/db/data/.gitkeep
+
+.github/workflows/tests.yml

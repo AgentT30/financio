@@ -2,7 +2,7 @@
 Custom template filters for Indian number formatting.
 """
 from django import template
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 register = template.Library()
 
@@ -29,27 +29,27 @@ def indian_format(value, decimals=2):
         # Convert decimals to int
         decimals = int(decimals) if decimals is not None else 2
 
-        # Convert to string and handle decimals
-        if isinstance(value, (int, float, Decimal)):
-            # Round to specified decimal places
-            if decimals == 0:
-                value = round(float(value))
-                str_value = str(int(value))
-                dec_part = None
-            else:
-                value = round(float(value), decimals)
-                str_value = str(value)
-                if '.' in str_value:
-                    int_part, dec_part = str_value.split('.')
-                    # Pad or truncate to specified decimal places
-                    dec_part = dec_part[:decimals].ljust(decimals, '0')
-                else:
-                    int_part = str_value
-                    dec_part = '0' * decimals
-                str_value = int_part
-        else:
-            str_value = str(value)
+        # Convert to Decimal if it's a numeric string or numeric type
+        if not isinstance(value, (int, float, Decimal)):
+            try:
+                value = Decimal(str(value).replace(',', ''))
+            except (ValueError, TypeError, InvalidOperation):
+                return value
+
+        # Round to specified decimal places
+        if decimals == 0:
+            value = round(float(value))
+            str_value = str(int(value))
             dec_part = None
+        else:
+            value = round(float(value), decimals)
+            str_value = f"{value:.{decimals}f}"
+            if '.' in str_value:
+                int_part, dec_part = str_value.split('.')
+            else:
+                int_part = str_value
+                dec_part = '0' * decimals
+            str_value = int_part
 
         int_part = str_value
 

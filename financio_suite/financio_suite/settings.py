@@ -91,6 +91,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'financio_suite.urls'
@@ -183,6 +184,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',  # Project-level static files
     BASE_DIR / 'assets',  # Project assets (logos, etc.)
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (User-uploaded content)
 MEDIA_URL = '/media/'
