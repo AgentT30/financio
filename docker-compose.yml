@@ -22,7 +22,6 @@ services:
 
     volumes:
       - ./financio_suite:/financio
-      - ./.env:/.env
     environment:
       - DEBUG=True
       - DB_HOST=financio-db
@@ -32,8 +31,6 @@ services:
       - DB_PASSWORD=postgres
       - DJANGO_SETTINGS_MODULE=financio_suite.settings
       - PYTHONPATH=/financio
-    env_file:
-      - .env
     depends_on:
       - financio-db
     command:
@@ -50,7 +47,6 @@ services:
     volumes:
       - ./financio_suite:/financio
       - ./tests:/financio/tests
-      - ./.env:/.env
     environment:
       - DEBUG=True
       - DB_HOST=financio-db
@@ -60,8 +56,6 @@ services:
       - DB_PASSWORD=postgres
       - DJANGO_SETTINGS_MODULE=financio_suite.settings
       - PYTHONPATH=/financio
-    env_file:
-      - .env
     working_dir: /financio/tests
     tty: true
     command: ["tail", "-f", "/dev/null"]
