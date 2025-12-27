@@ -18,10 +18,12 @@ services:
       context: .
       dockerfile: ./dockerfiles/webapp/Dockerfile
     container_name: financio-webapp
-
+    ports:
+      - "8013:8000"
     volumes:
       - ./financio_suite:/financio
     environment:
+      - DEBUG=False
       - DB_HOST=financio-db
       - DB_PORT=5432
       - DB_NAME=financio
@@ -36,6 +38,7 @@ services:
     command: >
       sh -c "
       python3 manage.py migrate &&
+      python3 manage.py collectstatic --noinput &&
       gunicorn financio_suite.wsgi:application
       --bind 0.0.0.0:8000
       --workers 1
