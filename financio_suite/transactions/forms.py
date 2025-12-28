@@ -93,7 +93,7 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['transaction_type', 'amount', 'method_type', 'purpose', 'category']
+        fields = ['transaction_type', 'amount', 'method_type', 'debit_card', 'purpose', 'category']
         widgets = {
             'transaction_type': forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
@@ -105,6 +105,9 @@ class TransactionForm(forms.ModelForm):
                 'min': '0.01'
             }),
             'method_type': forms.Select(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'debit_card': forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
             'purpose': forms.Textarea(attrs={
@@ -120,6 +123,27 @@ class TransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+
+        # Filter payment method choices
+        filtered_methods = [
+            ('upi', 'UPI'),
+            ('card', 'Debit Card'),
+            ('imps_neft_rtgs', 'IMPS/NEFT/RTGS'),
+            ('cheque', 'Cheque'),
+            ('other', 'Other'),
+        ]
+        self.fields['method_type'].choices = [('', 'Choose payment method (optional)')] + filtered_methods
+        self.fields['method_type'].required = False
+
+        # Set up Debit Card field
+        self.fields['debit_card'].required = False
+        self.fields['debit_card'].empty_label = "Choose debit card (optional)"
+        if self.user:
+            from accounts.models import DebitCard
+            self.fields['debit_card'].queryset = DebitCard.objects.filter(
+                user=self.user,
+                status='active'
+            ).select_related('bank_account')
 
         # Add custom account field with emoji indicators
         account_choices = [('', 'Choose an account')]  # Empty choice first

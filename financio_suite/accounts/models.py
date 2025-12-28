@@ -227,3 +227,111 @@ class BankAccountBalance(models.Model):
     def __str__(self):
         return f"{self.account.name}: {self.balance_amount} {self.account.currency}"
 
+
+class DebitCard(BaseAccount):
+    """
+    Debit card model linked to a bank account.
+    """
+
+    CARD_TYPE_CHOICES = [
+        ('visa', 'Visa'),
+        ('mastercard', 'Mastercard'),
+        ('rupay', 'RuPay'),
+        ('amex', 'American Express'),
+        ('other', 'Other'),
+    ]
+
+    bank_account = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        related_name='debit_cards',
+        help_text="Linked bank account"
+    )
+
+    card_type = models.CharField(
+        max_length=20,
+        choices=CARD_TYPE_CHOICES,
+        default='visa',
+        help_text="Type of card"
+    )
+
+    card_number = EncryptedCharField(
+        max_length=100,
+        help_text="Full card number (encrypted)"
+    )
+
+    card_number_last4 = models.CharField(
+        max_length=4,
+        editable=False,
+        help_text="Last 4 digits of card number (for display)"
+    )
+
+    cvv = EncryptedCharField(
+        max_length=10,
+        null=True,
+        blank=True,
+        help_text="Card CVV/CVV2 (encrypted)"
+    )
+
+    expiry_date = models.DateField(
+        help_text="Card expiry date"
+    )
+
+    class Meta:
+        db_table = 'debit_cards'
+        verbose_name = 'Debit Card'
+        verbose_name_plural = 'Debit Cards'
+        unique_together = [['user', 'bank_account', 'card_number_last4']]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_card_type_display()} ****{self.card_number_last4})"
+
+    def clean(self):
+        """Validate debit card data"""
+        super().clean()
+
+        # Validate card number (basic check - should be digits only)
+        if self.card_number:
+            clean_number = str(self.card_number).replace(' ', '').replace('-', '')
+            if not clean_number.isdigit():
+                raise ValidationError({
+                    'card_number': 'Card number must contain only digits'
+                })
+            # Typical length check
+            if len(clean_number) < 12 or len(clean_number) > 19:
+                raise ValidationError({
+                    'card_number': 'Card number must be between 12 and 19 digits'
+                })
+
+        # Validate CVV if provided
+        if self.cvv:
+            clean_cvv = str(self.cvv).strip()
+            if not clean_cvv.isdigit():
+                raise ValidationError({'cvv': 'CVV must contain only digits'})
+            if len(clean_cvv) < 3 or len(clean_cvv) > 4:
+                raise ValidationError({'cvv': 'CVV must be 3 or 4 digits'})
+
+    def save(self, *args, **kwargs):
+        """Override save to auto-extract last 4 digits and ensure user matches bank account"""
+        if self.bank_account:
+            self.user = self.bank_account.user
+
+        if self.card_number:
+            clean_number = str(self.card_number).replace(' ', '').replace('-', '')
+            if len(clean_number) >= 4:
+                self.card_number_last4 = clean_number[-4:]
+            else:
+                self.card_number_last4 = clean_number
+
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def get_masked_card_number(self):
+        """Returns masked card number (e.g., '****1234')"""
+        if self.card_number_last4:
+            return f"****{self.card_number_last4}"
+        return "N/A"
+
+    def get_current_balance(self):
+        """Debit card balance is the same as the linked bank account balance."""
+        return self.bank_account.get_current_balance()

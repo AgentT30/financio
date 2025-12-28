@@ -185,6 +185,7 @@ STATICFILES_DIRS = [
     BASE_DIR / 'assets',  # Project assets (logos, etc.)
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_MANIFEST_STRICT = False
 
 # Media files (User-uploaded content)
 MEDIA_URL = '/media/'
