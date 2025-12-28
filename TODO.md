@@ -62,6 +62,13 @@
 - [x] **Button Text Fix:** Create Account button now displays text properly
 - [x] **Recovery Token System:** Implemented secure token-based password reset (no SMTP required)
 - [x] **CI/CD Pipeline:** GitHub Actions workflow for automated testing on pull requests
+- [x] **Debit Cards Implementation:**
+  - [x] Created DebitCard model (linked to BankAccount)
+  - [x] Encrypted card number and CVV storage
+  - [x] Auto-extraction of last 4 digits for display
+  - [x] CRUD views and templates
+  - [x] Integrated into Dashboard and Accounts list
+  - [x] Transactions can now be linked to specific Debit Cards
 
 ## 🚧 In Progress
 
