@@ -38,6 +38,12 @@
                     </svg>
                     <p class="text-sm font-medium leading-normal">Fixed Deposits</p>
                 </a>
+                <a href="{% url 'category_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg {% if 'category' in request.resolver_match.url_name %}bg-gray-200 dark:bg-[#27273a]{% else %}hover:bg-gray-100 dark:hover:bg-gray-800{% endif %} text-gray-900 dark:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M149.66,154.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L112,180.69V117.37L77.66,83.03a8,8,0,0,1,11.32-11.32L128,111l39.34-39.34a8,8,0,0,1,11.32,11.32L144,117.37v63.32l25.66-25.66A8,8,0,0,1,169.66,165.66ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+                    </svg>
+                    <p class="text-sm font-medium leading-normal">Categories</p>
+                </a>
             </div>
         </div>
         <div class="flex flex-col gap-1">
