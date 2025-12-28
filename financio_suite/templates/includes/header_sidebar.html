@@ -101,6 +101,12 @@
                     </svg>
                     <p class="text-sm font-medium leading-normal">Fixed Deposits</p>
                 </a>
+                <a href="{% url 'category_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg {% if 'category' in request.resolver_match.url_name %}bg-gray-200 dark:bg-[#27273a]{% else %}hover:bg-gray-100 dark:hover:bg-gray-800{% endif %} text-gray-900 dark:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                        <path d="M149.66,154.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L112,180.69V117.37L77.66,83.03a8,8,0,0,1,11.32-11.32l32,32a8,8,0,0,1,2.34,5.66v69.32l25.66-25.66A8,8,0,0,1,149.66,154.34Zm82.34-26.34A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128ZM170.34,77.66a8,8,0,0,1,0,11.32l-25.66,25.66V184a8,8,0,0,1-16,0V114.63l-32,32a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,5.66-2.34h0A8,8,0,0,1,128,112v69l25.66-25.66a8,8,0,0,1,11.32,0Z" opacity="0.2"></path><path d="M149.66,154.34a8,8,0,0,1,0,11.32l-32,32a8,8,0,0,1-11.32,0l-32-32a8,8,0,0,1,11.32-11.32L112,180.69V117.37L77.66,83.03a8,8,0,0,1,11.32-11.32L128,111l39.34-39.34a8,8,0,0,1,11.32,11.32L144,117.37v63.32l25.66-25.66A8,8,0,0,1,169.66,165.66ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"></path>
+                    </svg>
+                    <p class="text-sm font-medium leading-normal">Categories</p>
+                </a>
                 <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-900 dark:text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                         <path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176ZM104,120v24a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm32-16v40a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm32-16v56a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0Z"></path>
