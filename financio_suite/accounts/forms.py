@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import BankAccount
+from .models import BankAccount, DebitCard
 
 
 class BankAccountForm(forms.ModelForm):
@@ -89,3 +89,66 @@ class BankAccountForm(forms.ModelForm):
         if ifsc:
             return ifsc.upper()
         return ifsc
+
+class DebitCardForm(forms.ModelForm):
+    """Form for creating and editing debit cards."""
+
+    class Meta:
+        model = DebitCard
+        fields = [
+            'name', 'bank_account', 'card_type', 'card_number', 'cvv',
+            'expiry_date', 'status', 'notes', 'picture', 'color'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Card name (e.g., HDFC Platinum Debit)'
+            }),
+            'bank_account': forms.Select(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'card_type': forms.Select(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'card_number': forms.TextInput(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'Card number (encrypted)'
+            }),
+            'cvv': forms.TextInput(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'placeholder': 'CVV (optional)'
+            }),
+            'expiry_date': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'status': forms.Select(attrs={
+                'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+            'notes': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none',
+                'placeholder': 'Additional notes (optional)'
+            }),
+            'picture': forms.FileInput(attrs={
+                'class': 'w-full px-4 py-3 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
+                'accept': 'image/*'
+            }),
+            'color': forms.TextInput(attrs={
+                'type': 'color',
+                'class': 'h-14 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            self.fields['bank_account'].queryset = BankAccount.objects.filter(user=user, status='active')
+
+        # Make optional fields clear
+        self.fields['cvv'].required = False
+        self.fields['notes'].required = False
+        self.fields['picture'].required = False
+        self.fields['color'].required = False

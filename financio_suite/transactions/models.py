@@ -75,7 +75,19 @@ class Transaction(models.Model):
         max_length=20,
         choices=METHOD_TYPE_CHOICES,
         db_index=True,
+        null=True,
+        blank=True,
         help_text="Payment method used"
+    )
+
+    # Linked Debit Card (optional)
+    debit_card = models.ForeignKey(
+        'accounts.DebitCard',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transactions',
+        help_text="Debit card used for this transaction"
     )
 
     # Purpose/description

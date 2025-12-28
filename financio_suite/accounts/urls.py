@@ -8,4 +8,10 @@ urlpatterns = [
     path('<int:pk>/edit/', views.account_edit, name='account_edit'),
     path('<int:pk>/delete/', views.account_delete, name='account_delete'),
     path('<int:pk>/toggle-status/', views.account_toggle_status, name='account_toggle_status'),
+    
+    # Debit Cards
+    path('debit-cards/', views.debit_card_list, name='debit_card_list'),
+    path('debit-cards/create/', views.debit_card_create, name='debit_card_create'),
+    path('debit-cards/<int:pk>/edit/', views.debit_card_edit, name='debit_card_edit'),
+    path('debit-cards/<int:pk>/delete/', views.debit_card_delete, name='debit_card_delete'),
 ]

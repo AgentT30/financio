@@ -6,8 +6,8 @@ from django.core.paginator import Paginator
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.deletion import ProtectedError
 from decimal import Decimal
-from .models import BankAccount, BankAccountBalance
-from .forms import BankAccountForm
+from .models import BankAccount, BankAccountBalance, DebitCard
+from .forms import BankAccountForm, DebitCardForm
 from creditcards.models import CreditCard, CreditCardBalance
 from transactions.models import Transaction
 from transfers.models import Transfer
@@ -269,3 +269,76 @@ def account_toggle_status(request, pk):
         messages.success(request, f'Account "{account.name}" activated.')
 
     return redirect('account_list')
+
+@login_required
+def debit_card_list(request):
+    """List all debit cards for the user."""
+    debit_cards = DebitCard.objects.filter(user=request.user).select_related('bank_account').order_by('status', '-created_at')
+    
+    context = {
+        'debit_cards': debit_cards,
+        'title': 'Debit Cards',
+    }
+    return render(request, 'accounts/debit_card_list.html', context)
+
+
+@login_required
+def debit_card_create(request):
+    """Create a new debit card."""
+    if request.method == 'POST':
+        form = DebitCardForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            card = form.save(commit=False)
+            card.user = request.user
+            card.save()
+            messages.success(request, f'Debit card "{card.name}" added successfully!')
+            return redirect('debit_card_list')
+    else:
+        form = DebitCardForm(user=request.user)
+
+    context = {
+        'form': form,
+        'title': 'Add Debit Card',
+        'button_text': 'Add Card',
+    }
+    return render(request, 'accounts/debit_card_form.html', context)
+
+
+@login_required
+def debit_card_edit(request, pk):
+    """Edit an existing debit card."""
+    card = get_object_or_404(DebitCard, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        form = DebitCardForm(request.POST, request.FILES, instance=card, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Debit card "{card.name}" updated successfully!')
+            return redirect('debit_card_list')
+    else:
+        form = DebitCardForm(instance=card, user=request.user)
+
+    context = {
+        'form': form,
+        'card': card,
+        'title': 'Edit Debit Card',
+        'button_text': 'Update Card',
+    }
+    return render(request, 'accounts/debit_card_form.html', context)
+
+
+@login_required
+def debit_card_delete(request, pk):
+    """Delete a debit card."""
+    card = get_object_or_404(DebitCard, pk=pk, user=request.user)
+
+    if request.method == 'POST':
+        name = card.name
+        card.delete()
+        messages.success(request, f'Debit card "{name}" deleted successfully!')
+        return redirect('debit_card_list')
+
+    context = {
+        'card': card,
+    }
+    return render(request, 'accounts/debit_card_confirm_delete.html', context)
