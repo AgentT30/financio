@@ -172,7 +172,7 @@ USE_I18N = True
 # USE_L10N is deprecated in Django 4.0+ and removed in 5.0+
 # Localization is now always enabled
 
-USE_TZ = True  # Store datetimes in database as timezone-aware
+USE_TZ = False  # Store datetimes in database as local time (IST)
 
 
 # Static files (CSS, JavaScript, Images)

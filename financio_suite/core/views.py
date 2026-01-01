@@ -51,7 +51,7 @@ def dashboard(request):
 
     # Get first day of current month for MTD calculations
     now = timezone.now()
-    first_day_of_month = datetime(now.year, now.month, 1, tzinfo=now.tzinfo)
+    first_day_of_month = datetime(now.year, now.month, 1)
 
     # Calculate month-to-date income and expense
     monthly_income = Transaction.objects.filter(
@@ -65,7 +65,7 @@ def dashboard(request):
         user=request.user,
         transaction_type='expense',
         datetime_ist__gte=first_day_of_month,
-        deleted_at__isnull=True
+    deleted_at__isnull=True
     ).aggregate(total=Sum('amount'))['total'] or 0
 
     # Get recent transactions (last 10)

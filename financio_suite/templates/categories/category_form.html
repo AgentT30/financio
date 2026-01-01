@@ -6,16 +6,8 @@
 {% block content %}
 <div class="relative flex h-auto min-h-screen w-full flex-col bg-white dark:bg-dark-bg overflow-x-hidden">
     <div class="layout-container flex h-full grow flex-col">
-        <!-- Header -->
-        <header class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 dark:border-[#27273a] px-4 md:px-10 py-3">
-            <div class="flex items-center gap-2 md:gap-4 text-gray-900 dark:text-white">
-                <a href="{% url 'dashboard' %}" class="flex items-center gap-2">
-                    <img src="{% static 'logo_dark.png' %}" alt="Financio" class="h-6 md:h-8 hidden dark:block">
-                    <img src="{% static 'logo_light.png' %}" alt="Financio" class="h-6 md:h-8 block dark:hidden">
-                    <h2 class="text-gray-900 dark:text-white text-base md:text-lg font-bold leading-tight tracking-[-0.015em] hidden sm:block">Financio</h2>
-                </a>
-            </div>
-        </header>
+        {% include 'includes/header.html' %}
+        {% include 'includes/sidebar.html' %}
 
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto px-4 md:px-10 py-6">

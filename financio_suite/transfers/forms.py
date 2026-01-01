@@ -37,16 +37,6 @@ class TransferForm(forms.Form):
         }),
         help_text="Transfer date"
     )
-    time = forms.TimeField(
-        widget=forms.TimeInput(attrs={
-            'type': 'time',
-            'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-            'placeholder': 'Optional'
-        }),
-        required=False,
-        initial=None,
-        help_text="Transfer time (optional, defaults to current time if not provided)"
-    )
 
     # Amount
     amount = forms.DecimalField(
@@ -136,20 +126,14 @@ class TransferForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         date = cleaned_data.get('date')
-        time = cleaned_data.get('time')
         from_account = cleaned_data.get('from_account')
         to_account = cleaned_data.get('to_account')
         amount = cleaned_data.get('amount')
 
-        # Combine date and time
+        # Combine date and the current time
         if date:
-            if time:
-                datetime_ist = timezone.datetime.combine(date, time)
-            else:
-                datetime_ist = timezone.datetime.combine(date, timezone.now().time())
-
-            # Make timezone-aware (IST)
-            datetime_ist = timezone.make_aware(datetime_ist, timezone.get_current_timezone())
+            # We use current time by default as requested
+            datetime_ist = timezone.datetime.combine(date, timezone.now().time())
             cleaned_data['datetime_ist'] = datetime_ist
 
         # Validate from_account and to_account are different

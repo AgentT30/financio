@@ -80,16 +80,6 @@ class TransactionForm(forms.ModelForm):
         }),
         help_text="Transaction date"
     )
-    time = forms.TimeField(
-        widget=forms.TimeInput(attrs={
-            'type': 'time',
-            'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-            'placeholder': 'Optional'
-        }),
-        required=False,
-        initial=None,
-        help_text="Transaction time (optional, defaults to current time if not provided)"
-    )
 
     class Meta:
         model = Transaction
@@ -185,7 +175,6 @@ class TransactionForm(forms.ModelForm):
         # Set initial date/time if editing
         if self.instance and self.instance.pk:
             self.fields['date'].initial = self.instance.datetime_ist.date()
-            self.fields['time'].initial = self.instance.datetime_ist.time()
             # Set account field for editing - need to reconstruct compound value
             # GenericFK stores separately: content_type + object_id
             # Form needs: "id|modelname" format for the unified dropdown
@@ -211,20 +200,14 @@ class TransactionForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         date = cleaned_data.get('date')
-        time = cleaned_data.get('time')
         account = cleaned_data.get('account')
         transaction_type = cleaned_data.get('transaction_type')
         amount = cleaned_data.get('amount')
 
-        # Combine date and time
+        # Combine date and the current time
         if date:
-            if time:
-                datetime_ist = timezone.datetime.combine(date, time)
-            else:
-                datetime_ist = timezone.datetime.combine(date, timezone.now().time())
-
-            # Make timezone-aware (IST)
-            datetime_ist = timezone.make_aware(datetime_ist, timezone.get_current_timezone())
+            # We use current time by default as requested
+            datetime_ist = timezone.datetime.combine(date, timezone.now().time())
             cleaned_data['datetime_ist'] = datetime_ist
 
         # Set GenericFK fields from account

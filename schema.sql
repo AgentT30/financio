@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS categories (
     description TEXT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT unique_category_per_user UNIQUE (user_id, name, type),
@@ -98,8 +98,8 @@ CREATE TABLE IF NOT EXISTS bank_accounts (
     color VARCHAR(7) NULL CHECK (color IS NULL OR color ~ '^#[0-9A-Fa-f]{6}$'),
     
     -- Timestamps
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT unique_account_per_user UNIQUE (user_id, institution, account_number_last4)
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS bank_account_balances (
     account_id BIGINT PRIMARY KEY REFERENCES bank_accounts(id) ON DELETE CASCADE,
     balance_amount NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
     last_posting_id BIGINT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Update trigger
@@ -191,8 +191,8 @@ CREATE TABLE IF NOT EXISTS credit_cards (
     color VARCHAR(7) NULL CHECK (color IS NULL OR color ~ '^#[0-9A-Fa-f]{6}$'),
     
     -- Timestamps
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT unique_creditcard_per_user UNIQUE (user_id, institution, card_number_last4)
@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS credit_card_balances (
     account_id BIGINT PRIMARY KEY REFERENCES credit_cards(id) ON DELETE CASCADE,
     balance_amount NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
     last_posting_id BIGINT NULL,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Update trigger
@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
     user_agent TEXT NULL,
     
     -- Timestamp
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for performance
@@ -326,9 +326,9 @@ COMMENT ON COLUMN control_accounts.description IS 'Description of the control ac
 CREATE TABLE IF NOT EXISTS journal_entries (
     id BIGSERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
-    occurred_at TIMESTAMPTZ NOT NULL,
+    occurred_at TIMESTAMP NOT NULL,
     memo TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for performance
@@ -370,7 +370,7 @@ CREATE TABLE IF NOT EXISTS postings (
     memo TEXT NULL,
     
     -- Timestamp
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT valid_debit_amount CHECK (posting_type != 'debit' OR amount >= 0),
@@ -403,7 +403,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
     
     -- Transaction details
-    datetime_ist TIMESTAMPTZ NOT NULL,
+    datetime_ist TIMESTAMP NOT NULL,
     transaction_type VARCHAR(20) NOT NULL CHECK (transaction_type IN ('income', 'expense')),
     amount NUMERIC(18, 2) NOT NULL CHECK (amount > 0),
     
@@ -422,11 +422,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     journal_entry_id BIGINT NULL UNIQUE REFERENCES journal_entries(id) ON DELETE PROTECT,
     
     -- Timestamps
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Soft delete
-    deleted_at TIMESTAMPTZ NULL
+    deleted_at TIMESTAMP NULL
 );
 
 -- Indexes for performance
@@ -472,7 +472,7 @@ CREATE TABLE IF NOT EXISTS transfers (
     user_id INTEGER NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
     
     -- Transfer details
-    datetime_ist TIMESTAMPTZ NOT NULL,
+    datetime_ist TIMESTAMP NOT NULL,
     amount NUMERIC(18, 2) NOT NULL CHECK (amount > 0),
     
     -- From account reference (GenericForeignKey)
@@ -493,11 +493,11 @@ CREATE TABLE IF NOT EXISTS transfers (
     journal_entry_id BIGINT NULL UNIQUE REFERENCES journal_entries(id) ON DELETE PROTECT,
     
     -- Timestamps
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Soft delete
-    deleted_at TIMESTAMPTZ NULL,
+    deleted_at TIMESTAMP NULL,
     
     -- Constraints
     CONSTRAINT different_accounts CHECK (
@@ -576,8 +576,8 @@ CREATE TABLE IF NOT EXISTS fixed_deposits (
     color VARCHAR(7) NULL CHECK (color IS NULL OR color ~ '^#[0-9A-Fa-f]{6}$'),
     
     -- Timestamps
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Constraints
     CONSTRAINT maturity_after_opening CHECK (maturity_date > opened_on),
