@@ -29,6 +29,7 @@ services:
       - DB_NAME=financio
       - DB_USER=postgres
       - DB_PASSWORD=postgres
+      - TZ=Asia/Kolkata
     depends_on:
       - financio-db
     deploy:

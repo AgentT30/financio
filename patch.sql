@@ -1,100 +1,59 @@
--- SQL Patch: Update Timezone Information to IST (UTC + 5:30)
+-- SQL Patch: Final IST Naive Conversion
 -- ----------------------------------------------------------------------------
--- This script shifts all existing timezone-aware timestamps by +5 hours 30 mins.
--- Execute this AFTER setting USE_TZ = False in Django settings.
--- It ensures that data previously stored in UTC now represents IST when read as naive.
+-- 1. CONVERT ALL TIMESTAMPTZ COLUMNS TO NAIVE TIMESTAMP
+-- ----------------------------------------------------------------------------
 
--- ============================================================================
--- 1. CORE TRANSACTION & TRANSFER TABLES
--- ============================================================================
+ALTER TABLE transactions ALTER COLUMN datetime_ist TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transactions ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transactions ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transactions ALTER COLUMN deleted_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Transactions
-UPDATE transactions SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes';
-UPDATE transactions SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE transactions SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-UPDATE transactions SET deleted_at = deleted_at + INTERVAL '5 hours 30 minutes' WHERE deleted_at IS NOT NULL;
+ALTER TABLE transfers ALTER COLUMN datetime_ist TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transfers ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transfers ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE transfers ALTER COLUMN deleted_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Transfers
-UPDATE transfers SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes';
-UPDATE transfers SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE transfers SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-UPDATE transfers SET deleted_at = deleted_at + INTERVAL '5 hours 30 minutes' WHERE deleted_at IS NOT NULL;
+ALTER TABLE journal_entries ALTER COLUMN occurred_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE journal_entries ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE postings ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- ============================================================================
--- 2. LEDGER TABLES
--- ============================================================================
+ALTER TABLE activity_logs ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Journal Entries
-UPDATE journal_entries SET occurred_at = occurred_at + INTERVAL '5 hours 30 minutes';
-UPDATE journal_entries SET created_at = created_at + INTERVAL '5 hours 30 minutes';
+ALTER TABLE bank_accounts ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE bank_accounts ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE bank_account_balances ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Postings
-UPDATE postings SET created_at = created_at + INTERVAL '5 hours 30 minutes';
+ALTER TABLE credit_cards ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE credit_cards ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE credit_card_balances ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- ============================================================================
--- 3. AUDIT & ACTIVITY LOGS
--- ============================================================================
+ALTER TABLE categories ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE categories ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Activity Logs
-UPDATE activity_logs SET created_at = created_at + INTERVAL '5 hours 30 minutes';
+ALTER TABLE fixed_deposits ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE fixed_deposits ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- ============================================================================
--- 4. ACCOUNT & CARD TABLES
--- ============================================================================
+-- Investment Tables (Django Migration managed)
+ALTER TABLE brokers ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE brokers ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE investments ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE investments ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE investment_transactions ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE investment_transactions ALTER COLUMN updated_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
--- Bank Accounts
-UPDATE bank_accounts SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE bank_accounts SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-UPDATE bank_account_balances SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- Debit Cards
-UPDATE debit_cards SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE debit_cards SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- Credit Cards
-UPDATE credit_cards SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE credit_cards SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-UPDATE credit_card_balances SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- ============================================================================
--- 5. INVESTMENT TABLES
--- ============================================================================
-
--- Brokers
-UPDATE brokers SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE brokers SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- Investments
-UPDATE investments SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE investments SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- Investment Transactions
-UPDATE investment_transactions SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE investment_transactions SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- ============================================================================
--- 6. FIXED DEPOSITS & CATEGORIES
--- ============================================================================
-
--- Fixed Deposits
-UPDATE fixed_deposits SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE fixed_deposits SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- Categories
-UPDATE categories SET created_at = created_at + INTERVAL '5 hours 30 minutes';
-UPDATE categories SET updated_at = updated_at + INTERVAL '5 hours 30 minutes';
-
--- ============================================================================
--- 7. SYSTEM & USER TABLES
--- ============================================================================
-
--- Users (Generic Django Tables)
-UPDATE auth_user SET last_login = last_login + INTERVAL '5 hours 30 minutes' WHERE last_login IS NOT NULL;
-UPDATE auth_user SET date_joined = date_joined + INTERVAL '5 hours 30 minutes';
-
--- Recovery Tokens
-UPDATE authn_userrecovery SET created_at = created_at + INTERVAL '5 hours 30 minutes';
+-- Auth & System
+ALTER TABLE auth_user ALTER COLUMN last_login TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE auth_user ALTER COLUMN date_joined TYPE TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE authn_userrecovery ALTER COLUMN created_at TYPE TIMESTAMP WITHOUT TIME ZONE;
 
 -- ----------------------------------------------------------------------------
--- Patch Complete
+-- 2. SYNCHRONIZE DATA VALUES (Fill UTC gaps)
 -- ----------------------------------------------------------------------------
+
+-- Fix record #2 specifically
+UPDATE transactions SET datetime_ist = created_at WHERE id = 2;
+
+-- Shift any remaining UTC values (14:xx) to match the IST clock (19:xx)
+UPDATE transactions SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes' WHERE datetime_ist < created_at - INTERVAL '1 hour';
+UPDATE transfers SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes' WHERE datetime_ist < created_at - INTERVAL '1 hour';
+UPDATE journal_entries SET occurred_at = occurred_at + INTERVAL '5 hours 30 minutes' WHERE occurred_at < created_at - INTERVAL '1 hour';
