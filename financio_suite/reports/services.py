@@ -41,13 +41,13 @@ class ReportService:
                 target_month += 12
                 target_year -= 1
             
-            month_start = datetime(target_year, target_month, 1, tzinfo=now.tzinfo)
+            month_start = datetime(target_year, target_month, 1)
             
             # Calculate end of month
             if target_month == 12:
-                next_month_start = datetime(target_year + 1, 1, 1, tzinfo=now.tzinfo)
+                next_month_start = datetime(target_year + 1, 1, 1)
             else:
-                next_month_start = datetime(target_year, target_month + 1, 1, tzinfo=now.tzinfo)
+                next_month_start = datetime(target_year, target_month + 1, 1)
             
             month_end = next_month_start - timedelta(seconds=1)
             
@@ -92,7 +92,7 @@ class ReportService:
             }
         """
         now = timezone.now()
-        month_start = datetime(now.year, now.month, 1, tzinfo=now.tzinfo)
+        month_start = datetime(now.year, now.month, 1)
         
         # Aggregate expenses by category
         expenses = Transaction.objects.filter(
@@ -154,9 +154,9 @@ class ReportService:
             
             # End of target month
             if target_month == 12:
-                next_month_start = datetime(target_year + 1, 1, 1, tzinfo=now.tzinfo)
+                next_month_start = datetime(target_year + 1, 1, 1)
             else:
-                next_month_start = datetime(target_year, target_month + 1, 1, tzinfo=now.tzinfo)
+                next_month_start = datetime(target_year, target_month + 1, 1)
             month_end = next_month_start - timedelta(seconds=1)
             
             labels.append(month_end.strftime('%b %Y'))

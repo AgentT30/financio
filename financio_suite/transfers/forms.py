@@ -148,8 +148,6 @@ class TransferForm(forms.Form):
             else:
                 datetime_ist = timezone.datetime.combine(date, timezone.now().time())
 
-            # Make timezone-aware (IST)
-            datetime_ist = timezone.make_aware(datetime_ist, timezone.get_current_timezone())
             cleaned_data['datetime_ist'] = datetime_ist
 
         # Validate from_account and to_account are different
