@@ -57,3 +57,16 @@ UPDATE transactions SET datetime_ist = created_at WHERE id = 2;
 UPDATE transactions SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes' WHERE datetime_ist < created_at - INTERVAL '1 hour';
 UPDATE transfers SET datetime_ist = datetime_ist + INTERVAL '5 hours 30 minutes' WHERE datetime_ist < created_at - INTERVAL '1 hour';
 UPDATE journal_entries SET occurred_at = occurred_at + INTERVAL '5 hours 30 minutes' WHERE occurred_at < created_at - INTERVAL '1 hour';
+
+-- ----------------------------------------------------------------------------
+-- 3. FIXED DEPOSITS: Convert tenure_months to tenure_days
+-- ----------------------------------------------------------------------------
+
+-- Step 1: Add new column tenure_days
+ALTER TABLE fixed_deposits ADD COLUMN IF NOT EXISTS tenure_days INTEGER;
+
+-- Step 2: Convert existing data (months * 30 = days)
+UPDATE fixed_deposits SET tenure_days = tenure_months * 30 WHERE tenure_months IS NOT NULL;
+
+-- Step 3: Drop old column tenure_months
+ALTER TABLE fixed_deposits DROP COLUMN IF EXISTS tenure_months;

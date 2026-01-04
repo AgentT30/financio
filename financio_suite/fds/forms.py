@@ -11,7 +11,7 @@ class FixedDepositForm(forms.ModelForm):
         fields = [
             'name', 'institution', 'fd_number',
             'principal_amount', 'interest_rate', 'maturity_amount',
-            'compounding_frequency', 'tenure_months', 'auto_renewal',
+            'compounding_frequency', 'tenure_days', 'auto_renewal',
             'opened_on', 'maturity_date',
             'status', 'notes', 'color'
         ]
@@ -50,9 +50,9 @@ class FixedDepositForm(forms.ModelForm):
             'compounding_frequency': forms.Select(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
             }),
-            'tenure_months': forms.NumberInput(attrs={
+            'tenure_days': forms.NumberInput(attrs={
                 'class': 'w-full h-14 px-4 rounded-lg bg-white dark:bg-dark-surface border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
-                'placeholder': '60',
+                'placeholder': '365',
                 'min': '1'
             }),
             'auto_renewal': forms.CheckboxInput(attrs={
@@ -87,7 +87,7 @@ class FixedDepositForm(forms.ModelForm):
             'interest_rate': 'Annual interest rate in percentage (0-100%)',
             'maturity_amount': 'Total amount you will receive on maturity (including interest)',
             'compounding_frequency': 'How often interest is compounded',
-            'tenure_months': 'FD duration in months',
+            'tenure_days': 'FD duration in days',
             'auto_renewal': 'Check if FD will auto-renew on maturity',
             'opened_on': 'Date when FD was opened',
             'maturity_date': 'Date when FD will mature (must be after opening date)',
@@ -118,7 +118,7 @@ class FixedDepositForm(forms.ModelForm):
         opened_on = cleaned_data.get('opened_on')
         maturity_date = cleaned_data.get('maturity_date')
         interest_rate = cleaned_data.get('interest_rate')
-        tenure_months = cleaned_data.get('tenure_months')
+        tenure_days = cleaned_data.get('tenure_days')
 
         # Validate principal amount
         if principal is not None and principal <= 0:
@@ -140,10 +140,10 @@ class FixedDepositForm(forms.ModelForm):
                     'maturity_amount': f'Maturity amount (₹{maturity:,.2f}) cannot be less than principal amount (₹{principal:,.2f}).'
                 })
 
-        # Validate tenure months
-        if tenure_months is not None and tenure_months <= 0:
+        # Validate tenure days
+        if tenure_days is not None and tenure_days <= 0:
             raise ValidationError({
-                'tenure_months': 'Tenure must be greater than zero months.'
+                'tenure_days': 'Tenure must be at least 1 day.'
             })
 
         # Validate dates
@@ -179,9 +179,9 @@ class FixedDepositForm(forms.ModelForm):
             raise ValidationError('Maturity amount must be greater than zero.')
         return maturity
 
-    def clean_tenure_months(self):
-        """Validate tenure months"""
-        tenure = self.cleaned_data.get('tenure_months')
+    def clean_tenure_days(self):
+        """Validate tenure days"""
+        tenure = self.cleaned_data.get('tenure_days')
         if tenure is not None and tenure <= 0:
-            raise ValidationError('Tenure must be at least 1 month.')
+            raise ValidationError('Tenure must be at least 1 day.')
         return tenure

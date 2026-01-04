@@ -80,8 +80,8 @@ class FixedDeposit(models.Model):
         default='quarterly',
         help_text="Interest compounding frequency"
     )
-    tenure_months = models.IntegerField(
-        help_text="Duration in months"
+    tenure_days = models.IntegerField(
+        help_text="Duration in days"
     )
     auto_renewal = models.BooleanField(
         default=False,
@@ -160,9 +160,9 @@ class FixedDeposit(models.Model):
             if self.maturity_amount < self.principal_amount:
                 errors['maturity_amount'] = 'Maturity amount cannot be less than principal amount.'
 
-        # Validate tenure months
-        if self.tenure_months is not None and self.tenure_months <= 0:
-            errors['tenure_months'] = 'Tenure must be greater than zero months.'
+        # Validate tenure days
+        if self.tenure_days is not None and self.tenure_days <= 0:
+            errors['tenure_days'] = 'Tenure must be at least 1 day.'
 
         # Validate dates
         if self.opened_on and self.maturity_date:
@@ -248,6 +248,39 @@ class FixedDeposit(models.Model):
                 'color': 'green',
                 'type': 'active'
             }
+
+    def get_tenure_display(self):
+        """
+        Get a friendly display of tenure in years, months, and days.
+        
+        Returns:
+            str: Friendly format like "1 year 2 months", "45 days", etc.
+        """
+        days = self.tenure_days
+        if days is None or days <= 0:
+            return "0 days"
+        
+        years = days // 365
+        remaining_days = days % 365
+        months = remaining_days // 30
+        final_days = remaining_days % 30
+        
+        parts = []
+        
+        if years > 0:
+            parts.append(f"{years} year" if years == 1 else f"{years} years")
+        
+        if months > 0:
+            parts.append(f"{months} month" if months == 1 else f"{months} months")
+        
+        if final_days > 0:
+            parts.append(f"{final_days} day" if final_days == 1 else f"{final_days} days")
+        
+        # If no parts (shouldn't happen with days > 0), return days
+        if not parts:
+            return f"{days} days"
+        
+        return " ".join(parts)
 
     def get_interest_earned(self):
         """
