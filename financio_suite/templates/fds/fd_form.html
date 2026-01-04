@@ -115,17 +115,17 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Tenure Months -->
+                            <!-- Tenure Days -->
                             <div>
                                 <label class="block text-gray-900 dark:text-white text-base font-medium mb-2">
-                                    Tenure (Months) <span class="text-red-500">*</span>
+                                    Tenure (Days) <span class="text-red-500">*</span>
                                 </label>
-                                {{ form.tenure_months }}
-                                {% if form.tenure_months.errors %}
-                                <p class="text-red-500 text-sm mt-1">{{ form.tenure_months.errors.0 }}</p>
+                                {{ form.tenure_days }}
+                                {% if form.tenure_days.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.tenure_days.errors.0 }}</p>
                                 {% endif %}
-                                {% if form.tenure_months.help_text %}
-                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.tenure_months.help_text }}</p>
+                                {% if form.tenure_days.help_text %}
+                                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ form.tenure_days.help_text }}</p>
                                 {% endif %}
                             </div>
 
