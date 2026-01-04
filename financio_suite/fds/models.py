@@ -254,7 +254,7 @@ class FixedDeposit(models.Model):
         Get a friendly display of tenure in years, months, and days.
         
         Returns:
-            str: Friendly format like "1 year 2 months", "45 days", etc.
+            str: Friendly format like "1 year 2 months (456 days)", "45 days", etc.
         """
         days = self.tenure_days
         if days is None or days <= 0:
@@ -276,11 +276,14 @@ class FixedDeposit(models.Model):
         if final_days > 0:
             parts.append(f"{final_days} day" if final_days == 1 else f"{final_days} days")
         
-        # If no parts (shouldn't happen with days > 0), return days
+        # If no parts (shouldn't happen with days > 0), return days only
         if not parts:
             return f"{days} days"
         
-        return " ".join(parts)
+        friendly_format = " ".join(parts)
+        
+        # Append total days in brackets
+        return f"{friendly_format} ({days} days)"
 
     def get_interest_earned(self):
         """
