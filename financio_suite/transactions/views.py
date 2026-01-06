@@ -13,9 +13,12 @@ from .models import Transaction
 from .forms import TransactionForm
 from categories.models import Category
 from accounts.models import BankAccount
+from creditcards.models import CreditCard
 from transfers.models import Transfer
+from django.contrib.contenttypes.models import ContentType
 from ledger.services import LedgerService
 from activity.utils import log_activity, track_model_changes
+from core.utils import get_all_accounts_with_emoji
 
 
 @login_required
@@ -46,12 +49,26 @@ def transaction_list(request):
         # Filter by from_account
         from_account_id = request.GET.get('from_account', '').strip()
         if from_account_id:
-            items = items.filter(from_account_object_id=from_account_id)
+            if '|' in from_account_id:
+                obj_id, model_name = from_account_id.split('|')
+                items = items.filter(from_account_content_type__model=model_name, from_account_object_id=obj_id)
+            elif ':' in from_account_id:
+                ct_id, obj_id = from_account_id.split(':')
+                items = items.filter(from_account_content_type_id=ct_id, from_account_object_id=obj_id)
+            else:
+                items = items.filter(from_account_object_id=from_account_id)
 
         # Filter by to_account
         to_account_id = request.GET.get('to_account', '').strip()
         if to_account_id:
-            items = items.filter(to_account_object_id=to_account_id)
+            if '|' in to_account_id:
+                obj_id, model_name = to_account_id.split('|')
+                items = items.filter(to_account_content_type__model=model_name, to_account_object_id=obj_id)
+            elif ':' in to_account_id:
+                ct_id, obj_id = to_account_id.split(':')
+                items = items.filter(to_account_content_type_id=ct_id, to_account_object_id=obj_id)
+            else:
+                items = items.filter(to_account_object_id=to_account_id)
 
         # Filter by date range
         date_from = request.GET.get('date_from', '').strip()
@@ -73,8 +90,9 @@ def transaction_list(request):
             except ValueError:
                 pass
 
-        # Get accounts for filter dropdowns
-        accounts = BankAccount.objects.filter(user=request.user, status='active').order_by('name')
+        # Get all active accounts (Bank + Credit Cards) for filter dropdowns
+        accounts_data = get_all_accounts_with_emoji(request.user)
+        accounts = [{'id': val, 'name': name} for obj, name, val in accounts_data]
 
         # Pagination
         paginator = Paginator(items, 20)
@@ -128,12 +146,25 @@ def transaction_list(request):
         account_id = request.GET.get('account', '').strip()
         if account_id:
             try:
-                from django.contrib.contenttypes.models import ContentType
-                bank_account_ct = ContentType.objects.get_for_model(BankAccount)
-                items = items.filter(
-                    account_content_type=bank_account_ct,
-                    account_object_id=int(account_id)
-                )
+                if '|' in account_id:
+                    obj_id, model_name = account_id.split('|')
+                    items = items.filter(
+                        account_content_type__model=model_name,
+                        account_object_id=obj_id
+                    )
+                elif ':' in account_id:
+                    ct_id, obj_id = account_id.split(':')
+                    items = items.filter(
+                        account_content_type_id=ct_id,
+                        account_object_id=obj_id
+                    )
+                else:
+                    # Legacy support for BankAccount only
+                    bank_account_ct = ContentType.objects.get_for_model(BankAccount)
+                    items = items.filter(
+                        account_content_type=bank_account_ct,
+                        account_object_id=int(account_id)
+                    )
             except (ValueError, ContentType.DoesNotExist):
                 pass
 
@@ -164,7 +195,10 @@ def transaction_list(request):
 
         # Get categories and accounts for filter dropdowns
         categories = Category.objects.filter(user=request.user).order_by('name')
-        accounts = BankAccount.objects.filter(user=request.user, status='active').order_by('name')
+        
+        # Get all active accounts (Bank + Credit Cards)
+        accounts_data = get_all_accounts_with_emoji(request.user)
+        accounts = [{'id': val, 'name': name} for obj, name, val in accounts_data]
 
         context = {
             'page_obj': page_obj,
