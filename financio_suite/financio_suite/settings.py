@@ -206,6 +206,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@financio.local'
 
 # Authentication configuration
+AUTHENTICATION_BACKENDS = [
+    'authn.backends.EmailOrUsernameModelBackend',
+]
+
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
