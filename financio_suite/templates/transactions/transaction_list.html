@@ -22,7 +22,7 @@
                             {{ page_obj.paginator.count }} {{ is_transfer_view|yesno:"transfer,transaction" }}{{ page_obj.paginator.count|pluralize }}
                         </p>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
                         <a href="{% url 'transactions:transaction_create' %}" class="flex items-center justify-center px-4 md:px-6 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white text-sm font-bold transition-colors">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -183,12 +183,24 @@
                         </div>
 
                         <!-- Filter Buttons -->
-                        <div class="flex items-end gap-2 lg:col-span-2">
+                        <div class="flex items-end gap-2 lg:col-span-2 lg:col-start-1">
                             <button type="submit" class="flex-1 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors">
                                 Apply Filters
                             </button>
                             <a href="{% url 'transactions:transaction_list' %}" class="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors text-center">
                                 Clear
+                            </a>
+                        </div>
+
+                        <!-- CSV Export (Right aligned under Category) -->
+                        <div class="flex items-end justify-end lg:col-start-4">
+                            <a href="{% url 'transactions:transaction_export_csv' %}?{{ request.GET.urlencode }}" 
+                               title="Download CSV"
+                               class="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all flex items-center justify-center shadow-sm"
+                               id="downloadCsvBtn">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
                             </a>
                         </div>
                     </form>
