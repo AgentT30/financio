@@ -1,3 +1,5 @@
+import csv
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -21,13 +23,11 @@ from activity.utils import log_activity, track_model_changes
 from core.utils import get_all_accounts_with_emoji
 
 
-@login_required
-def transaction_list(request):
+def get_filtered_items(request):
     """
-    Unified list view for transactions and transfers with filtering, search, and pagination.
-    Use ?view=transfers to show transfers instead of transactions.
+    Helper function to filter transactions or transfers based on request parameters.
+    Returns (items, view_type)
     """
-    # Determine active view (transactions or transfers)
     view_type = request.GET.get('view', 'transactions').strip()
 
     if view_type == 'transfers':
@@ -69,47 +69,6 @@ def transaction_list(request):
                 items = items.filter(to_account_content_type_id=ct_id, to_account_object_id=obj_id)
             else:
                 items = items.filter(to_account_object_id=to_account_id)
-
-        # Filter by date range
-        date_from = request.GET.get('date_from', '').strip()
-        date_to = request.GET.get('date_to', '').strip()
-
-        if date_from:
-            try:
-                from datetime import datetime
-                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
-                items = items.filter(datetime_ist__date__gte=date_from_obj.date())
-            except ValueError:
-                pass
-
-        if date_to:
-            try:
-                from datetime import datetime
-                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
-                items = items.filter(datetime_ist__date__lte=date_to_obj.date())
-            except ValueError:
-                pass
-
-        # Get all active accounts (Bank + Credit Cards) for filter dropdowns
-        accounts_data = get_all_accounts_with_emoji(request.user)
-        accounts = [{'id': val, 'name': name} for obj, name, val in accounts_data]
-
-        # Pagination
-        paginator = Paginator(items, 20)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        context = {
-            'page_obj': page_obj,
-            'accounts': accounts,
-            'search_query': search_query,
-            'selected_from_account': from_account_id,
-            'selected_to_account': to_account_id,
-            'date_from': date_from,
-            'date_to': date_to,
-            'view_type': view_type,
-            'is_transfer_view': True,
-        }
     else:
         # Get all non-deleted transactions for the user
         items = Transaction.objects.filter(
@@ -168,37 +127,80 @@ def transaction_list(request):
             except (ValueError, ContentType.DoesNotExist):
                 pass
 
-        # Filter by date range
-        date_from = request.GET.get('date_from', '').strip()
-        date_to = request.GET.get('date_to', '').strip()
+    # Generic filters (date range)
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
 
-        if date_from:
-            try:
-                from datetime import datetime
-                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
-                items = items.filter(datetime_ist__date__gte=date_from_obj.date())
-            except ValueError:
-                pass
+    if date_from:
+        try:
+            from datetime import datetime
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            items = items.filter(datetime_ist__date__gte=date_from_obj.date())
+        except ValueError:
+            pass
 
-        if date_to:
-            try:
-                from datetime import datetime
-                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
-                items = items.filter(datetime_ist__date__lte=date_to_obj.date())
-            except ValueError:
-                pass
+    if date_to:
+        try:
+            from datetime import datetime
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+            items = items.filter(datetime_ist__date__lte=date_to_obj.date())
+        except ValueError:
+            pass
+
+    return items, view_type
+
+
+@login_required
+def transaction_list(request):
+    """
+    Unified list view for transactions and transfers with filtering, search, and pagination.
+    Use ?view=transfers to show transfers instead of transactions.
+    """
+    items, view_type = get_filtered_items(request)
+
+    # Get search query for context
+    search_query = request.GET.get('search', '').strip()
+
+    # Get all active accounts (Bank + Credit Cards) for filter dropdowns
+    accounts_data = get_all_accounts_with_emoji(request.user)
+    accounts = [{'id': val, 'name': name} for obj, name, val in accounts_data]
+
+    # Date range for context
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+
+    if view_type == 'transfers':
+        from_account_id = request.GET.get('from_account', '').strip()
+        to_account_id = request.GET.get('to_account', '').strip()
+
+        # Pagination
+        paginator = Paginator(items, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'page_obj': page_obj,
+            'accounts': accounts,
+            'search_query': search_query,
+            'selected_from_account': from_account_id,
+            'selected_to_account': to_account_id,
+            'date_from': date_from,
+            'date_to': date_to,
+            'view_type': view_type,
+            'is_transfer_view': True,
+        }
+    else:
+        transaction_type = request.GET.get('type', '').strip()
+        category_id = request.GET.get('category', '').strip()
+        account_id = request.GET.get('account', '').strip()
 
         # Pagination (20 per page)
         paginator = Paginator(items, 20)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        # Get categories and accounts for filter dropdowns
+        # Get categories for filter dropdowns
         categories = Category.objects.filter(user=request.user).order_by('name')
-        
-        # Get all active accounts (Bank + Credit Cards)
-        accounts_data = get_all_accounts_with_emoji(request.user)
-        accounts = [{'id': val, 'name': name} for obj, name, val in accounts_data]
 
         context = {
             'page_obj': page_obj,
@@ -215,6 +217,50 @@ def transaction_list(request):
         }
 
     return render(request, 'transactions/transaction_list.html', context)
+
+
+@login_required
+def transaction_export_csv(request):
+    """
+    Export filtered transactions or transfers to CSV.
+    """
+    items, view_type = get_filtered_items(request)
+
+    # Generate filename: Transactions_Download_DD_MM_YYYY_HH_MM_SS.csv
+    now = timezone.now()
+    filename_prefix = "Transfers" if view_type == "transfers" else "Transactions"
+    filename = f"{filename_prefix}_Download_{now.strftime('%d_%m_%Y_%H_%M_%S')}.csv"
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+
+    if view_type == 'transfers':
+        writer.writerow(['Date & Time', 'From Account', 'To Account', 'Method', 'Memo', 'Amount'])
+        for transfer in items:
+            writer.writerow([
+                transfer.datetime_ist.strftime('%Y-%m-%d %H:%M:%S'),
+                transfer.from_account.name if transfer.from_account else 'N/A',
+                transfer.to_account.name if transfer.to_account else 'N/A',
+                transfer.get_method_type_display(),
+                transfer.memo,
+                transfer.amount
+            ])
+    else:
+        writer.writerow(['Date & Time', 'Type', 'Category', 'Account', 'Method', 'Purpose', 'Amount'])
+        for transaction in items:
+            writer.writerow([
+                transaction.datetime_ist.strftime('%Y-%m-%d %H:%M:%S'),
+                transaction.get_transaction_type_display(),
+                transaction.category.name if transaction.category else 'Uncategorized',
+                transaction.account.name if transaction.account else 'N/A',
+                transaction.get_method_type_display(),
+                transaction.purpose,
+                transaction.amount
+            ])
+
+    return response
 
 
 @login_required
