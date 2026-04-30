@@ -4,11 +4,12 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction as db_transaction
+from django.contrib.contenttypes.models import ContentType
 from .models import Transfer
 from .forms import TransferForm
 from accounts.models import BankAccount
 from ledger.services import LedgerService
-from activity.utils import log_activity
+from activity.utils import log_activity, track_model_changes
 
 
 @login_required
@@ -99,7 +100,6 @@ def transfer_create(request):
                 to_account = form.cleaned_data.get('to_account')
 
                 # Get ContentType for the accounts
-                from django.contrib.contenttypes.models import ContentType
                 from_account_ct = ContentType.objects.get_for_model(from_account)
                 to_account_ct = ContentType.objects.get_for_model(to_account)
 
@@ -160,6 +160,126 @@ def transfer_create(request):
         'form': form,
         'page_title': 'New Transfer',
         'submit_text': 'Create Transfer',
+    }
+
+    return render(request, 'transfers/transfer_form.html', context)
+
+
+@login_required
+def transfer_edit(request, pk):
+    """
+    Edit an existing transfer and update the associated ledger entry.
+    """
+    transfer = get_object_or_404(Transfer, pk=pk, user=request.user, deleted_at__isnull=True)
+    old_transfer = Transfer.objects.get(pk=transfer.pk)
+
+    if request.method == 'POST':
+        form = TransferForm(request.POST, user=request.user)
+
+        if form.is_valid():
+            try:
+                with db_transaction.atomic():
+                    ledger_service = LedgerService()
+
+                    # Reverse the existing transfer in ledger if a journal entry exists.
+                    if transfer.journal_entry:
+                        old_from_account = transfer.from_account
+                        old_to_account = transfer.to_account
+                        old_journal = transfer.journal_entry
+
+                        from_ct = ContentType.objects.get_for_model(old_from_account)
+                        to_ct = ContentType.objects.get_for_model(old_to_account)
+
+                        old_from_posting = old_journal.postings.filter(
+                            account_content_type=from_ct,
+                            account_object_id=old_from_account.id
+                        ).first()
+                        old_to_posting = old_journal.postings.filter(
+                            account_content_type=to_ct,
+                            account_object_id=old_to_account.id
+                        ).first()
+
+                        if old_from_posting:
+                            ledger_service._update_account_balance(
+                                old_from_account,
+                                -old_from_posting.amount,
+                                old_from_posting.id
+                            )
+
+                        if old_to_posting:
+                            ledger_service._update_account_balance(
+                                old_to_account,
+                                -old_to_posting.amount,
+                                old_to_posting.id
+                            )
+
+                        transfer.journal_entry = None
+                        transfer.save(update_fields=['journal_entry'])
+                        old_journal.delete()
+
+                    from_account = form.cleaned_data.get('from_account')
+                    to_account = form.cleaned_data.get('to_account')
+
+                    transfer.datetime_ist = form.cleaned_data.get('datetime_ist')
+                    transfer.amount = form.cleaned_data.get('amount')
+                    transfer.method_type = form.cleaned_data.get('method_type')
+                    transfer.memo = form.cleaned_data.get('memo')
+                    transfer.from_account_content_type = ContentType.objects.get_for_model(from_account)
+                    transfer.from_account_object_id = from_account.pk
+                    transfer.to_account_content_type = ContentType.objects.get_for_model(to_account)
+                    transfer.to_account_object_id = to_account.pk
+                    transfer.save(skip_validation=True)
+
+                    journal_entry, from_balance, to_balance = ledger_service.create_transfer_entry(
+                        user=request.user,
+                        occurred_at=transfer.datetime_ist,
+                        amount=transfer.amount,
+                        from_account=from_account,
+                        to_account=to_account,
+                        memo=transfer.memo or 'Transfer'
+                    )
+
+                    transfer.journal_entry = journal_entry
+                    transfer.save(skip_validation=True)
+
+                    changes = track_model_changes(
+                        old_instance=old_transfer,
+                        new_instance=transfer,
+                        fields_to_track=[
+                            'datetime_ist', 'amount', 'method_type',
+                            'memo', 'from_account_object_id', 'to_account_object_id'
+                        ]
+                    )
+
+                    if changes:
+                        log_activity(
+                            user=request.user,
+                            action='update',
+                            obj=transfer,
+                            changes=changes,
+                            request=request
+                        )
+
+                messages.success(request, 'Transfer updated successfully!')
+                return redirect('transfers:transfer_list')
+
+            except Exception as e:
+                messages.error(request, f'Error updating transfer: {str(e)}')
+    else:
+        initial_data = {
+            'date': transfer.datetime_ist.date(),
+            'amount': transfer.amount,
+            'method_type': transfer.method_type,
+            'memo': transfer.memo,
+            'from_account': f"{transfer.from_account.id}|{transfer.from_account.__class__.__name__.lower()}",
+            'to_account': f"{transfer.to_account.id}|{transfer.to_account.__class__.__name__.lower()}"
+        }
+        form = TransferForm(initial=initial_data, user=request.user)
+
+    context = {
+        'form': form,
+        'page_title': 'Edit Transfer',
+        'submit_text': 'Update Transfer',
     }
 
     return render(request, 'transfers/transfer_form.html', context)

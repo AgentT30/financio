@@ -153,7 +153,8 @@
                                     <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
                                         {{ transfer.memo|truncatewords:10 }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+                                        <a href="{% url 'transfers:transfer_edit' transfer.pk %}" class="text-primary dark:text-blue-300 hover:text-primary-hover dark:hover:text-blue-200">Edit</a>
                                         <a href="{% url 'transfers:transfer_delete' transfer.pk %}" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</a>
                                     </td>
                                 </tr>
@@ -188,9 +189,12 @@
                             <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">
                                 {{ transfer.memo|truncatewords:15 }}
                             </div>
-                            <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center justify-between text-xs mb-3">
                                 <span class="text-gray-500 dark:text-gray-500">{{ transfer.get_method_type_display }}</span>
-                                <a href="{% url 'transfers:transfer_delete' transfer.pk %}" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 font-medium">Delete</a>
+                                <div class="flex gap-3">
+                                    <a href="{% url 'transfers:transfer_edit' transfer.pk %}" class="text-primary dark:text-blue-300 hover:text-primary-hover dark:hover:text-blue-200 font-medium">Edit</a>
+                                    <a href="{% url 'transfers:transfer_delete' transfer.pk %}" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 font-medium">Delete</a>
+                                </div>
                             </div>
                         </div>
                         {% empty %}
