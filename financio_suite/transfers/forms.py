@@ -70,6 +70,10 @@ class TransferForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        # A transfer is supplied by the edit view so balance validation can
+        # evaluate the replacement transfer after its current posting is
+        # reversed.
+        self.instance = kwargs.pop('instance', None)
         super().__init__(*args, **kwargs)
 
         # Get account choices with emoji indicators
@@ -161,6 +165,20 @@ class TransferForm(forms.Form):
             # Transfers from credit cards are valid (e.g., refund/reversal scenarios)
             if from_account_type == 'BankAccount':
                 current_balance = from_account.get_current_balance()
+
+                # The current transfer has already reduced this balance.  An
+                # edit replaces that posting, so restore its debit while
+                # validating the replacement amount.  Do this only when the
+                # source account is unchanged; an old transfer from another
+                # account has no effect on this account's available balance.
+                if self.instance and self.instance.pk and self.instance.journal_entry_id:
+                    old_from_account = self.instance.from_account
+                    if (
+                        old_from_account
+                        and old_from_account.__class__ == from_account.__class__
+                        and old_from_account.pk == from_account.pk
+                    ):
+                        current_balance += self.instance.amount
 
                 if current_balance < amount:
                     raise ValidationError(

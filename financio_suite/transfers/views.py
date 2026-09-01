@@ -1,10 +1,14 @@
+import csv
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.http import HttpResponse
 from django.db.models import Q
 from django.db import transaction as db_transaction
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from .models import Transfer
 from .forms import TransferForm
 from accounts.models import BankAccount
@@ -64,6 +68,15 @@ def transfer_list(request):
         except ValueError:
             pass
 
+    # Sort by date before pagination.  The secondary key keeps equal timestamps
+    # in a deterministic order.
+    sort_order = request.GET.get('sort', 'date_desc')
+    if sort_order == 'date_asc':
+        transfers = transfers.order_by('datetime_ist', 'pk')
+    else:
+        sort_order = 'date_desc'
+        transfers = transfers.order_by('-datetime_ist', '-pk')
+
     # Pagination (20 per page)
     paginator = Paginator(transfers, 20)
     page_number = request.GET.get('page')
@@ -80,9 +93,65 @@ def transfer_list(request):
         'selected_to_account': to_account_id,
         'date_from': date_from,
         'date_to': date_to,
+        'sort_order': sort_order,
     }
 
     return render(request, 'transfers/transfer_list.html', context)
+
+
+@login_required
+def transfer_export_csv(request):
+    """Export the filtered transfers in the selected date order."""
+    transfers = Transfer.objects.filter(
+        user=request.user,
+        deleted_at__isnull=True,
+    )
+
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        transfers = transfers.filter(memo__icontains=search_query)
+
+    for param_name, field_name in (
+        ('from_account', 'from_account_object_id'),
+        ('to_account', 'to_account_object_id'),
+    ):
+        account_id = request.GET.get(param_name, '').strip()
+        if account_id:
+            transfers = transfers.filter(**{field_name: account_id})
+
+    for param_name, lookup in (
+        ('date_from', 'datetime_ist__date__gte'),
+        ('date_to', 'datetime_ist__date__lte'),
+    ):
+        date_value = request.GET.get(param_name, '').strip()
+        if date_value:
+            try:
+                from datetime import datetime
+                transfers = transfers.filter(**{lookup: datetime.strptime(date_value, '%Y-%m-%d').date()})
+            except ValueError:
+                pass
+
+    sort_order = request.GET.get('sort', 'date_desc')
+    if sort_order == 'date_asc':
+        transfers = transfers.order_by('datetime_ist', 'pk')
+    else:
+        transfers = transfers.order_by('-datetime_ist', '-pk')
+
+    response = HttpResponse(content_type='text/csv')
+    filename = f"Transfers_Download_{timezone.now().strftime('%d_%m_%Y_%H_%M_%S')}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+    writer.writerow(['Date & Time', 'From Account', 'To Account', 'Method', 'Memo', 'Amount'])
+    for transfer in transfers:
+        writer.writerow([
+            transfer.datetime_ist.strftime('%Y-%m-%d %H:%M:%S'),
+            transfer.from_account.name if transfer.from_account else 'N/A',
+            transfer.to_account.name if transfer.to_account else 'N/A',
+            transfer.get_method_type_display(),
+            transfer.memo,
+            transfer.amount,
+        ])
+    return response
 
 
 @login_required
@@ -174,7 +243,7 @@ def transfer_edit(request, pk):
     old_transfer = Transfer.objects.get(pk=transfer.pk)
 
     if request.method == 'POST':
-        form = TransferForm(request.POST, user=request.user)
+        form = TransferForm(request.POST, user=request.user, instance=transfer)
 
         if form.is_valid():
             try:
@@ -360,4 +429,3 @@ def transfer_delete(request, pk):
     }
 
     return render(request, 'transfers/transfer_confirm_delete.html', context)
-
