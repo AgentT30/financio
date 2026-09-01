@@ -8,6 +8,8 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import FormView, TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction as db_transaction
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
@@ -159,6 +161,85 @@ class AccountDeleteView(View):
         user.delete()
         messages.success(request, 'Your account has been permanently deleted.')
         return redirect('login')
+
+
+class UserDataResetView(LoginRequiredMixin, View):
+    """Hard-delete a user's workspace data while preserving their login."""
+
+    confirmation_phrase = 'Delete/Reset my account'
+
+    def post(self, request):
+        action = request.POST.get('action')
+        confirmation_text = request.POST.get('confirmation_text')
+
+        if action not in {'reset', 'delete'}:
+            messages.error(request, 'Choose whether to reset financial history or delete all workspace data.')
+            return redirect('settings')
+        if confirmation_text != self.confirmation_phrase:
+            messages.error(request, 'Data deletion failed. Confirmation phrase did not match.')
+            return redirect('settings')
+
+        with db_transaction.atomic():
+            _delete_financial_history(request.user, reset_balances=action == 'reset')
+            if action == 'delete':
+                _delete_all_workspace_data(request.user)
+
+        if action == 'reset':
+            messages.success(request, 'All transactions, transfers, ledger history, and activity logs were permanently deleted. Account balances now equal their opening balances.')
+        else:
+            messages.success(request, 'All workspace data was permanently deleted. Your login and recovery key were kept.')
+        return redirect('settings')
+
+
+def _delete_financial_history(user, reset_balances):
+    """Hard-delete financial records and their ledger history for one user."""
+    from transactions.models import Transaction
+    from transfers.models import Transfer
+    from ledger.models import JournalEntry
+    from activity.models import ActivityLog
+
+    # JournalEntry is PROTECTed by the user-facing records, so detach the
+    # references before deleting both the records and their posting cascade.
+    Transaction.objects.filter(user=user).update(journal_entry=None)
+    Transfer.objects.filter(user=user).update(journal_entry=None)
+    Transaction.objects.filter(user=user).delete()
+    Transfer.objects.filter(user=user).delete()
+    JournalEntry.objects.filter(user=user).delete()
+    ActivityLog.objects.filter(user=user).delete()
+
+    if reset_balances:
+        from accounts.models import BankAccount, BankAccountBalance
+        from creditcards.models import CreditCard, CreditCardBalance
+
+        for account in BankAccount.objects.select_for_update().filter(user=user):
+            BankAccountBalance.objects.update_or_create(
+                account=account,
+                defaults={'balance_amount': account.opening_balance, 'last_posting_id': None},
+            )
+        for card in CreditCard.objects.select_for_update().filter(user=user):
+            CreditCardBalance.objects.update_or_create(
+                account=card,
+                defaults={'balance_amount': card.opening_balance, 'last_posting_id': None},
+            )
+
+
+def _delete_all_workspace_data(user):
+    """Hard-delete the remaining user-owned workspace data, not the user."""
+    from accounts.models import BankAccount, DebitCard
+    from creditcards.models import CreditCard
+    from categories.models import Category
+    from fds.models import FixedDeposit
+    from investments.models import Broker, Investment
+
+    # Investments must be removed before brokers because their broker FK is
+    # protected. Investment transactions cascade from investments.
+    Investment.objects.filter(user=user).delete()
+    Broker.objects.filter(user=user).delete()
+    FixedDeposit.objects.filter(user=user).delete()
+    DebitCard.objects.filter(user=user).delete()
+    CreditCard.objects.filter(user=user).delete()
+    BankAccount.objects.filter(user=user).delete()
+    Category.objects.filter(user=user).delete()
 
 
 class RecalculateBalancesView(View):

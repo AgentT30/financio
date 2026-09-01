@@ -10,5 +10,6 @@ urlpatterns = [
     path('settings/', views.SettingsView.as_view(), name='settings'),
     path('settings/password-change/', views.PasswordChangeView.as_view(), name='password_change'),
     path('settings/account-delete/', views.AccountDeleteView.as_view(), name='account_delete'),
+    path('settings/reset-user-data/', views.UserDataResetView.as_view(), name='reset_user_data'),
     path('settings/recalculate-balances/', views.RecalculateBalancesView.as_view(), name='recalculate_balances'),
 ]

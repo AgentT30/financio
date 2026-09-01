@@ -110,7 +110,16 @@
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white text-red-600 dark:text-red-400">Danger Zone</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Irreversible actions for your account.</p>
                         </div>
-                        <div class="p-6">
+                        <div class="p-6 space-y-6">
+                            <div class="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-gray-800">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Delete / Reset All User Data</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Permanently clear financial history or all workspace data while keeping your login.</p>
+                                </div>
+                                <button onclick="openDataResetModal()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors">
+                                    Delete / Reset Data
+                                </button>
+                            </div>
                             <div class="flex items-center justify-between">
                                 <div>
                                     <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Delete Account</h4>
@@ -125,6 +134,38 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Delete / Reset User Data Confirmation Modal -->
+<div id="dataResetModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-dark-surface rounded-xl shadow-2xl max-w-md w-full p-6 relative border border-gray-200 dark:border-gray-800">
+        <h3 class="text-xl font-bold text-red-600 dark:text-red-400 text-center mb-2">Delete or Reset Your Data?</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">This action is permanent. Your login and recovery key will remain available.</p>
+        <form action="{% url 'reset_user_data' %}" method="post">
+            {% csrf_token %}
+            <fieldset class="space-y-3 mb-5">
+                <label class="flex gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer">
+                    <input type="radio" name="action" value="reset" checked class="mt-1" onchange="updateDataResetModal()">
+                    <span><span class="block text-sm font-semibold text-gray-900 dark:text-white">Reset transfers &amp; transactions</span><span class="block text-xs text-gray-500 dark:text-gray-400">Keeps accounts and cards. Financial history and activity logs are permanently deleted; balances return to opening balances.</span></span>
+                </label>
+                <label class="flex gap-3 p-3 border border-red-200 dark:border-red-900/50 rounded-lg cursor-pointer">
+                    <input type="radio" name="action" value="delete" class="mt-1" onchange="updateDataResetModal()">
+                    <span><span class="block text-sm font-semibold text-red-600 dark:text-red-400">Delete all workspace data</span><span class="block text-xs text-gray-500 dark:text-gray-400">Also deletes bank accounts, credit cards, debit cards, categories, brokers/investments, fixed deposits, and activity logs.</span></span>
+                </label>
+            </fieldset>
+            <div class="mb-6">
+                <label for="dataResetConfirmInput" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wider">Type exactly to confirm</label>
+                <p class="text-sm font-mono bg-gray-100 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-800 text-center text-red-600 dark:text-red-400 mb-3 select-none">Delete/Reset my account</p>
+                <input type="text" name="confirmation_text" id="dataResetConfirmInput" placeholder="Type the phrase here..."
+                       class="w-full px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                       oninput="validateDataResetInput()">
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="submit" id="dataResetSubmit" disabled class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-sm font-bold transition-colors">Permanently Reset Data</button>
+                <button type="button" onclick="closeDataResetModal()" class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-bold transition-colors">Cancel</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -217,6 +258,28 @@ function closeRecalculateModal() {
     document.getElementById('recalculateModal').classList.add('hidden');
 }
 
+function openDataResetModal() {
+    document.getElementById('dataResetModal').classList.remove('hidden');
+    document.getElementById('dataResetConfirmInput').value = '';
+    document.getElementById('dataResetSubmit').disabled = true;
+    updateDataResetModal();
+    document.getElementById('dataResetConfirmInput').focus();
+}
+
+function closeDataResetModal() {
+    document.getElementById('dataResetModal').classList.add('hidden');
+}
+
+function validateDataResetInput() {
+    document.getElementById('dataResetSubmit').disabled =
+        document.getElementById('dataResetConfirmInput').value !== 'Delete/Reset my account';
+}
+
+function updateDataResetModal() {
+    const deletingAll = document.querySelector('input[name="action"]:checked').value === 'delete';
+    document.getElementById('dataResetSubmit').textContent = deletingAll ? 'Permanently Delete Everything' : 'Permanently Reset Data';
+}
+
 function openDeleteModal() {
     document.getElementById('deleteModal').classList.remove('hidden');
     document.getElementById('deleteConfirmInput').value = '';
@@ -248,6 +311,7 @@ document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeDeleteModal();
         closeRecalculateModal();
+        closeDataResetModal();
     }
 });
 
@@ -261,6 +325,12 @@ document.getElementById('deleteModal').addEventListener('click', function(event)
 document.getElementById('recalculateModal').addEventListener('click', function(event) {
     if (event.target === this) {
         closeRecalculateModal();
+    }
+});
+
+document.getElementById('dataResetModal').addEventListener('click', function(event) {
+    if (event.target === this) {
+        closeDataResetModal();
     }
 });
 </script>
