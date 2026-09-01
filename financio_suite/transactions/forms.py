@@ -230,6 +230,19 @@ class TransactionForm(forms.ModelForm):
                 if current_balance is None:
                     current_balance = 0
 
+                # Editing replaces the existing ledger entry.  When the old
+                # transaction is an expense from this same account, add its
+                # debit back before checking the replacement amount.
+                if self.instance and self.instance.pk and self.instance.journal_entry_id:
+                    old_account = self.instance.account
+                    if (
+                        self.instance.transaction_type == 'expense'
+                        and old_account
+                        and old_account.__class__ == account.__class__
+                        and old_account.pk == account.pk
+                    ):
+                        current_balance += self.instance.amount
+
                 if current_balance < amount:
                     # Add error to amount field specifically to avoid __all__ display
                     self.add_error('amount',

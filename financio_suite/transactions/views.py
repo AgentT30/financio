@@ -39,7 +39,7 @@ def get_filtered_items(request):
             'from_account_content_type',
             'to_account_content_type',
             'journal_entry'
-        ).order_by('-datetime_ist')
+        )
 
         # Search by memo
         search_query = request.GET.get('search', '').strip()
@@ -78,7 +78,7 @@ def get_filtered_items(request):
             'category',
             'journal_entry',
             'account_content_type'
-        ).order_by('-datetime_ist')
+        )
 
         # Search by purpose
         search_query = request.GET.get('search', '').strip()
@@ -147,7 +147,17 @@ def get_filtered_items(request):
         except ValueError:
             pass
 
-    return items, view_type
+    # Keep list pagination and CSV exports in exactly the same date order.
+    # A secondary primary-key ordering makes rows with an identical timestamp
+    # deterministic.
+    sort_order = request.GET.get('sort', 'date_desc')
+    if sort_order == 'date_asc':
+        items = items.order_by('datetime_ist', 'pk')
+    else:
+        sort_order = 'date_desc'
+        items = items.order_by('-datetime_ist', '-pk')
+
+    return items, view_type, sort_order
 
 
 @login_required
@@ -156,7 +166,7 @@ def transaction_list(request):
     Unified list view for transactions and transfers with filtering, search, and pagination.
     Use ?view=transfers to show transfers instead of transactions.
     """
-    items, view_type = get_filtered_items(request)
+    items, view_type, sort_order = get_filtered_items(request)
 
     # Get search query for context
     search_query = request.GET.get('search', '').strip()
@@ -186,6 +196,7 @@ def transaction_list(request):
             'selected_to_account': to_account_id,
             'date_from': date_from,
             'date_to': date_to,
+            'sort_order': sort_order,
             'view_type': view_type,
             'is_transfer_view': True,
         }
@@ -193,6 +204,21 @@ def transaction_list(request):
         transaction_type = request.GET.get('type', '').strip()
         category_id = request.GET.get('category', '').strip()
         account_id = request.GET.get('account', '').strip()
+        has_active_filters = any([
+            search_query,
+            transaction_type,
+            category_id,
+            account_id,
+            date_from,
+            date_to,
+        ])
+
+        # Aggregate the entire filtered queryset, rather than only the current
+        # page, so the summary reflects every matching transaction.
+        filtered_totals = items.aggregate(
+            income=Sum('amount', filter=Q(transaction_type='income')),
+            expenses=Sum('amount', filter=Q(transaction_type='expense')),
+        )
 
         # Pagination (20 per page)
         paginator = Paginator(items, 20)
@@ -212,6 +238,10 @@ def transaction_list(request):
             'selected_account': account_id,
             'date_from': date_from,
             'date_to': date_to,
+            'sort_order': sort_order,
+            'has_active_filters': has_active_filters,
+            'filtered_income_total': filtered_totals['income'] or Decimal('0.00'),
+            'filtered_expense_total': filtered_totals['expenses'] or Decimal('0.00'),
             'view_type': view_type,
             'is_transfer_view': False,
         }
@@ -224,7 +254,7 @@ def transaction_export_csv(request):
     """
     Export filtered transactions or transfers to CSV.
     """
-    items, view_type = get_filtered_items(request)
+    items, view_type, _ = get_filtered_items(request)
 
     # Generate filename: Transactions_Download_DD_MM_YYYY_HH_MM_SS.csv
     now = timezone.now()
